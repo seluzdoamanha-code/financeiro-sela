@@ -30,7 +30,7 @@ async function carregarListaAssociados() {
         // Busca as Pessoas lá da tabela central do Portal (assumindo que a tabela se chama 'pessoas')
         // Vamos buscar todos e depois filtrar localmente, ou buscar apenas quem tem status/cargo específico
         const { data: pessoas, error } = await db.from('pessoas')
-            .select('id, cpf, nome_completo, email')
+            .select('id, cpf_cnpj, nome_completo, email')
             .order('nome_completo', { ascending: true });
             
         if (error) throw error;
@@ -48,7 +48,7 @@ async function carregarListaAssociados() {
             div.innerHTML = `
                 <div style="flex: 1;">
                     <div style="font-weight: 500;">${p.nome_completo}</div>
-                    <div style="font-size: 11px; color: var(--text-muted);">${p.cpf || p.email || 'Sem CPF'}</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">${p.cpf_cnpj || p.email || 'Sem CPF'}</div>
                 </div>
             `;
             
