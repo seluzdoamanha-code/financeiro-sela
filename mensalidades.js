@@ -83,48 +83,165 @@ async function selecionarAssociado(pessoa, elementClicked) {
     // Limpar tabela
     document.getElementById('tabelaMensalidadesAssociado').innerHTML = '<tr><td colspan="5" style="padding: 24px; text-align: center; color: var(--text-muted);">Buscando histórico...</td></tr>';
     
-    // TODO: Buscar configuração na tabela 'fin_config_mensalidades' (cpf, valor, dia_vencimento, inicio)
-    // E depois buscar em 'fin_transacoes' os pagamentos para gerar os 12 meses.
+    // Buscar configuração na tabela 'fin_config_mensalidades'
+    try {
+        const { data: cfg } = await db.from('fin_config_mensalidades').select('*').eq('cpf_cnpj', pessoa.cpf_cnpj).single();
+        if (cfg) {
+            document.getElementById('cfgValorMensalidade').value = cfg.valor || '';
+            document.getElementById('cfgDiaVencimento').value = cfg.dia_vencimento || '';
+            document.getElementById('cfgInicio').value = cfg.inicio_mm_aaaa || '';
+        } else {
+            document.getElementById('cfgValorMensalidade').value = '';
+            document.getElementById('cfgDiaVencimento').value = '';
+            document.getElementById('cfgInicio').value = '';
+        }
+    } catch (err) {
+        console.log("Sem config prévia para este usuário.");
+    }
     
-    // Mockup visual temporário enquanto criamos a tabela no Supabase
-    setTimeout(() => {
-        document.getElementById('cfgValorMensalidade').value = '50.00';
-        document.getElementById('cfgDiaVencimento').value = '10';
-        document.getElementById('cfgInicio').value = '01/2026';
-        renderizarMesesMockup();
-    }, 500);
+    gerarTabelaMensalidadesReal(pessoa);
 }
 
-function renderizarMesesMockup() {
-    const tbody = document.getElementById('tabelaMensalidadesAssociado');
-    tbody.innerHTML = '';
+document.getElementById('btnSalvarConfigMensalidade').addEventListener('click', async () => {
+    if (!associadoAtivo) return;
     
-    const mesesStr = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    const btn = document.getElementById('btnSalvarConfigMensalidade');
+    btn.innerText = 'Salvando...';
+    btn.disabled = true;
+    
+    const payload = {
+        cpf_cnpj: associadoAtivo.cpf_cnpj,
+        valor: document.getElementById('cfgValorMensalidade').value,
+        dia_vencimento: document.getElementById('cfgDiaVencimento').value,
+        inicio_mm_aaaa: document.getElementById('cfgInicio').value
+    };
+    
+    try {
+        const { error } = await db.from('fin_config_mensalidades').upsert(payload, { onConflict: 'cpf_cnpj' });
+        if (error) throw error;
+        
+        btn.innerText = 'Salvo!';
+        btn.style.background = '#10b981';
+        btn.style.color = 'white';
+        
+        setTimeout(() => {
+            btn.innerText = 'Salvar Configuração';
+            btn.style.background = '';
+            btn.style.color = '';
+            btn.disabled = false;
+        }, 2000);
+        
+        // Recarrega a tabela para atualizar cores de Atrasado baseadas no novo Vencimento
+        gerarTabelaMensalidadesReal(associadoAtivo);
+    } catch (err) {
+        console.error(err);
+        alert('Erro ao salvar configuração: ' + err.message);
+        btn.innerText = 'Salvar Configuração';
+        btn.disabled = false;
+    }
+});
+
+async function gerarTabelaMensalidadesReal(pessoa) {
+    const tbody = document.getElementById('tabelaMensalidadesAssociado');
+    tbody.innerHTML = '<tr><td colspan="5" style="padding: 24px; text-align: center; color: var(--text-muted);">Carregando pagamentos...</td></tr>';
+    
     const ano = document.getElementById('filtroAnoMensalidade').value;
+    
+    // Buscar transações de mensalidade deste usuário neste ano
+    // Vamos buscar tudo que tem categoria = 'Mensalidade' e o CPF do usuário
+    // Como a competência é MM/AAAA, usamos like '%/AAAA'
+    let pagamentos = [];
+    try {
+        const { data } = await db.from('fin_transacoes')
+            .select('*')
+            .eq('cpf', pessoa.cpf_cnpj)
+            .eq('categoria', 'Mensalidade')
+            .like('competencia', `%/${ano}`);
+        pagamentos = data || [];
+    } catch (e) {
+        console.error(e);
+    }
+    
+    const cfgValor = parseFloat(document.getElementById('cfgValorMensalidade').value) || 0;
+    const cfgDia = parseInt(document.getElementById('cfgDiaVencimento').value) || 10;
+    
+    tbody.innerHTML = '';
+    const mesesStr = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    
+    const dataAtual = new Date();
     
     mesesStr.forEach((nomeMes, index) => {
         const numMes = (index + 1).toString().padStart(2, '0');
-        const tr = document.createElement('tr');
-        tr.style.borderBottom = '1px solid var(--border)';
+        const comp = `${numMes}/${ano}`;
         
-        // Mockup de status para demonstração visual
+        // Achar se tem pagamento
+        const pgto = pagamentos.find(p => p.competencia === comp);
+        
+        const dataVencimento = new Date(ano, index, cfgDia);
+        const estaAtrasado = !pgto && dataAtual > dataVencimento;
+        
         let statusStr = '<span style="color: var(--text-muted);">A Vencer</span>';
-        let btnAcao = `<button class="btn btn-primary" style="padding: 4px 12px; font-size: 12px; background: #10b981;">💵 Dar Baixa</button>`;
+        let btnAcao = `<button class="btn btn-primary" onclick="darBaixaMensalidade('${pessoa.cpf_cnpj}', '${pessoa.nome_completo}', '${comp}', ${cfgValor})" style="padding: 4px 12px; font-size: 12px; background: #10b981;">💵 Dar Baixa</button>`;
+        let dataPagtoStr = '-';
+        let valorExibido = cfgValor > 0 ? `R$ ${cfgValor.toFixed(2).replace('.',',')}` : '-';
         
-        if (index < 3) {
-            statusStr = '<span style="color: #ef4444; font-weight: 600;">Atrasado</span>';
-        } else if (index === 3) {
+        if (pgto) {
             statusStr = '<span style="color: #10b981; font-weight: 600;">Pago</span>';
             btnAcao = `<span style="color: var(--text-muted); font-size: 12px;">✅ Recebido</span>`;
+            valorExibido = `R$ ${parseFloat(pgto.valor).toFixed(2).replace('.',',')}`;
+            if (pgto.data_pagamento) {
+                const pDate = pgto.data_pagamento.split('-');
+                dataPagtoStr = `${pDate[2]}/${pDate[1]}/${pDate[0]}`;
+            }
+        } else if (estaAtrasado) {
+            statusStr = '<span style="color: #ef4444; font-weight: 600;">Atrasado</span>';
         }
         
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid var(--border)';
         tr.innerHTML = `
             <td style="padding: 12px 16px; font-size: 14px;">${nomeMes}/${ano}</td>
-            <td style="padding: 12px 16px; font-size: 14px;">R$ 50,00</td>
+            <td style="padding: 12px 16px; font-size: 14px;">${valorExibido}</td>
             <td style="padding: 12px 16px; font-size: 14px;">${statusStr}</td>
-            <td style="padding: 12px 16px; font-size: 14px; color: var(--text-muted);">${index === 3 ? '10/04/2026' : '-'}</td>
+            <td style="padding: 12px 16px; font-size: 14px; color: var(--text-muted);">${dataPagtoStr}</td>
             <td style="padding: 12px 16px; text-align: right;">${btnAcao}</td>
         `;
         tbody.appendChild(tr);
     });
 }
+
+// Função global para dar baixa
+window.darBaixaMensalidade = async function(cpf_cnpj, nome, competencia, valor) {
+    if (!valor || valor <= 0) {
+        alert("O associado não tem valor de mensalidade configurado. Configure no topo antes de dar baixa.");
+        return;
+    }
+    
+    if (!confirm(`Confirma o recebimento da mensalidade de ${competencia} no valor de R$ ${valor}?`)) return;
+    
+    try {
+        const transacao = {
+            cpf: cpf_cnpj,
+            tipo: 'Receita',
+            valor: valor,
+            competencia: competencia,
+            categoria: 'Mensalidade',
+            descricao: `Mensalidade ${competencia}`,
+            nome_livre: nome,
+            status: 'Pago',
+            data_pagamento: new Date().toISOString().split('T')[0]
+        };
+        
+        const { error } = await db.from('fin_transacoes').insert([transacao]);
+        if (error) throw error;
+        
+        // Recarrega a tabela de mensalidades para mostrar como "Pago"
+        if (associadoAtivo) {
+            gerarTabelaMensalidadesReal(associadoAtivo);
+        }
+        
+    } catch (err) {
+        console.error(err);
+        alert("Erro ao dar baixa: " + err.message);
+    }
+};
