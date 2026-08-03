@@ -210,38 +210,64 @@ async function gerarTabelaMensalidadesReal(pessoa) {
     });
 }
 
-// Função global para dar baixa
-window.darBaixaMensalidade = async function(cpf_cnpj, nome, competencia, valor) {
+// Função global para abrir o modal de baixa
+window.darBaixaMensalidade = function(cpf_cnpj, nome, competencia, valor) {
     if (!valor || valor <= 0) {
         alert("O associado não tem valor de mensalidade configurado. Configure no topo antes de dar baixa.");
         return;
     }
     
-    if (!confirm(`Confirma o recebimento da mensalidade de ${competencia} no valor de R$ ${valor}?`)) return;
+    document.getElementById('lblBaixaCompetencia').innerText = competencia;
+    document.getElementById('inBaixaValor').value = valor;
     
-    try {
-        const transacao = {
-            cpf: cpf_cnpj,
-            tipo: 'Receita',
-            valor: valor,
-            competencia: competencia,
-            categoria: 'Mensalidade',
-            descricao: `Mensalidade ${competencia}`,
-            nome_livre: nome,
-            status: 'Pago',
-            data_pagamento: new Date().toISOString().split('T')[0]
-        };
-        
-        const { error } = await db.from('fin_transacoes').insert([transacao]);
-        if (error) throw error;
-        
-        // Recarrega a tabela de mensalidades para mostrar como "Pago"
-        if (associadoAtivo) {
-            gerarTabelaMensalidadesReal(associadoAtivo);
-        }
-        
-    } catch (err) {
-        console.error(err);
-        alert("Erro ao dar baixa: " + err.message);
-    }
+    document.getElementById('inBaixaCpf').value = cpf_cnpj;
+    document.getElementById('inBaixaNome').value = nome;
+    document.getElementById('inBaixaCompetencia').value = competencia;
+    
+    document.getElementById('modalBaixaMensalidade').style.display = 'flex';
 };
+
+// Escutar o envio do modal de baixa
+document.addEventListener('DOMContentLoaded', () => {
+    const formBaixa = document.getElementById('formBaixaMensalidade');
+    if (formBaixa) {
+        formBaixa.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnConfirmarBaixa');
+            const originalText = btn.innerText;
+            btn.innerText = 'Processando...';
+            btn.disabled = true;
+            
+            try {
+                const transacao = {
+                    cpf: document.getElementById('inBaixaCpf').value,
+                    tipo: 'Receita',
+                    valor: parseFloat(document.getElementById('inBaixaValor').value),
+                    competencia: document.getElementById('inBaixaCompetencia').value,
+                    categoria: 'Mensalidade',
+                    descricao: `Mensalidade ${document.getElementById('inBaixaCompetencia').value}`,
+                    nome_livre: document.getElementById('inBaixaNome').value,
+                    status: 'Pago',
+                    data_pagamento: new Date().toISOString().split('T')[0]
+                };
+                
+                const { error } = await db.from('fin_transacoes').insert([transacao]);
+                if (error) throw error;
+                
+                document.getElementById('modalBaixaMensalidade').style.display = 'none';
+                
+                // Recarrega a tabela de mensalidades
+                if (associadoAtivo) {
+                    gerarTabelaMensalidadesReal(associadoAtivo);
+                }
+                
+            } catch (err) {
+                console.error(err);
+                alert("Erro ao dar baixa: " + err.message);
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        });
+    }
+});

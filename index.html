@@ -466,5 +466,33 @@
         </div>
     </div>
 
+    <!-- Modal Baixa de Mensalidade -->
+    <div class="modal-overlay" id="modalBaixaMensalidade" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000;">
+        <div class="modal-content" style="background: var(--bg-panel); padding: 32px; border-radius: 16px; border: 1px solid var(--border); width: 100%; max-width: 400px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 style="font-size: 20px;">Confirmar Recebimento</h2>
+                <button onclick="document.getElementById('modalBaixaMensalidade').style.display='none'" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 20px;">&times;</button>
+            </div>
+            
+            <form id="formBaixaMensalidade" style="display: flex; flex-direction: column; gap: 16px;">
+                <div style="text-align: center; margin-bottom: 8px;">
+                    <div style="font-size: 14px; color: var(--text-muted);">Mensalidade Referência</div>
+                    <div id="lblBaixaCompetencia" style="font-size: 24px; font-weight: 600; color: var(--primary);">08/2026</div>
+                </div>
+
+                <div>
+                    <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px;">Valor Recebido (R$) *</label>
+                    <input type="number" id="inBaixaValor" step="0.01" min="0" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white; font-size: 18px; text-align: center;">
+                </div>
+                
+                <input type="hidden" id="inBaixaCpf">
+                <input type="hidden" id="inBaixaNome">
+                <input type="hidden" id="inBaixaCompetencia">
+
+                <button type="submit" class="btn btn-primary" id="btnConfirmarBaixa" style="margin-top: 16px; padding: 12px; width: 100%; font-size: 16px; background: #10b981;">💵 Dar Baixa</button>
+            </form>
+        </div>
+    </div>
+
 </body>
 </html>
