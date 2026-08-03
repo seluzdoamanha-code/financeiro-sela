@@ -22,6 +22,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="auth.js" defer></script>
     <script src="transacoes.js" defer></script>
+    <script src="mensalidades.js" defer></script>
     
     <style>
         /* Ajustes Finanças */
@@ -119,6 +120,30 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+        
+        /* Lista de Associados (Mensalidades) */
+        .assoc-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.2s;
+            color: var(--text-main);
+            font-size: 14px;
+        }
+        .assoc-item:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .assoc-item.active {
+            background: rgba(79, 70, 229, 0.15);
+            border-left: 3px solid #818cf8;
+        }
+        .assoc-item.inadimplente {
+            color: #ef4444;
+        }
+        
         .btn-google {
             display: flex;
             align-items: center;
@@ -292,6 +317,87 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+            <!-- VIEW: Mensalidades -->
+            <div class="content-body" id="viewMensalidades" style="display: none; height: 100%;">
+                <div style="display: flex; gap: 24px; height: 100%;">
+                    
+                    <!-- Coluna Esquerda: Lista de Associados -->
+                    <div style="width: 320px; background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0;">
+                        <div style="padding: 16px; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.2);">
+                            <button class="btn btn-primary" style="width: 100%; margin-bottom: 16px; background: #10b981;">Enviar Extrato Anual (WhatsApp)</button>
+                            <div style="display: flex; gap: 8px; align-items: center; justify-content: space-between;">
+                                <select id="filtroAnoMensalidade" style="padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-dark); color: white; width: 100px;">
+                                    <option value="2025">2025</option><option value="2026" selected>2026</option>
+                                </select>
+                                <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                                    <input type="checkbox" id="checkApenasInadimplentes"> Apenas Inadimplentes
+                                </label>
+                            </div>
+                        </div>
+                        <div style="flex: 1; overflow-y: auto;" id="listaAssociados">
+                            <!-- Items inseridos via JS -->
+                            <div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 13px;">Carregando associados...</div>
+                        </div>
+                    </div>
+
+                    <!-- Coluna Direita: Detalhes do Associado Selecionado -->
+                    <div style="flex: 1; background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; opacity: 0.5; pointer-events: none;" id="painelDetalheMensalidade">
+                        
+                        <!-- Header Configuração -->
+                        <div style="padding: 16px 24px; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.2);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                <h3 style="font-size: 18px; margin: 0; display: flex; align-items: center; gap: 8px;">
+                                    Gestão de Mensalidades: 
+                                    <span id="nomeAssociadoSelecionado" style="color: var(--primary);">Selecione um associado</span>
+                                </h3>
+                                <button class="btn btn-secondary" id="btnSalvarConfigMensalidade" style="padding: 6px 12px; font-size: 13px;">Salvar Configuração</button>
+                            </div>
+                            <div style="display: flex; gap: 16px;">
+                                <div style="flex: 1; display: flex; align-items: center; gap: 8px;">
+                                    <label style="font-size: 13px; color: var(--text-muted); white-space: nowrap;">Valor R$:</label>
+                                    <input type="number" id="cfgValorMensalidade" step="0.01" style="width: 100px; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-dark); color: white;">
+                                </div>
+                                <div style="flex: 1; display: flex; align-items: center; gap: 8px;">
+                                    <label style="font-size: 13px; color: var(--text-muted); white-space: nowrap;">Dia Venc.:</label>
+                                    <input type="number" id="cfgDiaVencimento" min="1" max="31" style="width: 70px; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-dark); color: white;">
+                                </div>
+                                <div style="flex: 1; display: flex; align-items: center; gap: 8px;">
+                                    <label style="font-size: 13px; color: var(--text-muted); white-space: nowrap;">Início (MM/AAAA):</label>
+                                    <input type="text" id="cfgInicio" placeholder="01/2026" style="width: 90px; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-dark); color: white;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tabela de Meses -->
+                        <div style="flex: 1; overflow-y: auto;">
+                            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                                <thead style="position: sticky; top: 0; background: var(--bg-panel); border-bottom: 1px solid var(--border);">
+                                    <tr>
+                                        <th style="padding: 12px 16px; font-weight: 500; color: var(--text-muted); font-size: 13px;">Mês Ref.</th>
+                                        <th style="padding: 12px 16px; font-weight: 500; color: var(--text-muted); font-size: 13px;">Valor</th>
+                                        <th style="padding: 12px 16px; font-weight: 500; color: var(--text-muted); font-size: 13px;">Status</th>
+                                        <th style="padding: 12px 16px; font-weight: 500; color: var(--text-muted); font-size: 13px;">Data Pagto</th>
+                                        <th style="padding: 12px 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: right;">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabelaMensalidadesAssociado">
+                                    <tr>
+                                        <td colspan="5" style="padding: 24px; text-align: center; color: var(--text-muted);">Selecione um associado na lista.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Rodapé com botão de WhatsApp -->
+                        <div style="padding: 16px; border-top: 1px solid var(--border); background: rgba(0,0,0,0.2);">
+                            <button class="btn btn-secondary" id="btnCobrarAtrasos" style="width: 100%; background: #f59e0b; color: white; border: none; font-weight: 600;">
+                                💬 Cobrar Atrasos (WhatsApp)
+                            </button>
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
         </main>
