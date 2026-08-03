@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SELA Financeiro</title>
+    <link rel="icon" type="image/png" href="logo_sela.png">
+    
+    <!-- Open Graph / WhatsApp Preview -->
+    <meta property="og:title" content="Financeiro SELA">
+    <meta property="og:description" content="Acesso restrito à Tesouraria e Diretoria da Sociedade Espírita Luz do Amanhã.">
+    <meta property="og:image" content="https://financeiro.luzdoamanha.org.br/logo_sela.png">
+    <meta property="og:url" content="https://financeiro.luzdoamanha.org.br/">
+    <meta property="og:type" content="website">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js" defer></script>
+    <script src="transacoes.js" defer></script>
+    
+    <style>
+        /* Ajustes Finanças */
+        .finance-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .finance-card-title {
+            font-size: 14px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        .finance-card-value {
+            font-size: 32px;
+            font-weight: 700;
+        }
+        .value-positive { color: var(--success); }
+        .value-negative { color: #ef4444; }
+        .value-neutral { color: var(--text-main); }
+        
+        /* Modal de Login Ocultando a Tela */
+        #loginOverlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: var(--bg-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .login-box {
+            background: var(--bg-panel);
+            padding: 40px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: rgba(0,0,0,0.2);
+            color: white;
+            font-size: 16px;
+        }
+
+        /* Menu de Usuário (Rodapé da Sidebar) */
+        .user-profile {
+            margin-top: auto;
+            padding: 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        .user-role {
+            font-size: 12px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .btn-google {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            background-color: #ffffff;
+            color: #3c4043;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 12px;
+        }
+        .btn-google:hover {
+            background-color: #f8f9fa;
+        }
+        .btn-microsoft {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            background-color: #2F2F2F;
+            color: #ffffff;
+            border: 1px solid #2F2F2F;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-microsoft:hover {
+            background-color: #1a1a1a;
+        }
+        .google-icon, .ms-icon {
+            width: 20px;
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Overlay de Login -->
+    <div id="loginOverlay">
+        <div class="login-box">
+            <img src="logo_sela.png" alt="SELA" style="height: 80px; margin-bottom: 24px;">
+            <h2 style="margin-bottom: 8px;">Financeiro SELA</h2>
+            <p style="color: var(--text-muted); margin-bottom: 32px; font-size: 14px;">Acesso restrito à Tesouraria</p>
+            
+            <div id="loginError" style="color: #ef4444; margin-top: 16px; margin-bottom: 16px; font-size: 14px; display: none;">Credenciais inválidas.</div>
+            
+            <button id="btnGoogleLogin" class="btn-google">
+                <svg class="google-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                    <path fill="none" d="M0 0h48v48H0z"/>
+                </svg>
+                Entrar com o Google
+            </button>
+
+            <button id="btnMicrosoftLogin" class="btn-microsoft">
+                <svg class="ms-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 21 21">
+                    <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
+                    <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
+                    <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
+                    <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+                </svg>
+                Entrar com a Microsoft
+            </button>
+        </div>
+    </div>
+
+    <div class="app-container" style="display: none;" id="mainApp">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-area" style="text-align: center; padding: 32px 24px;">
+                <img src="logo_sela.png" alt="SELA" style="height: 50px; margin-bottom: 16px;">
+                <h2 style="font-size: 18px; color: #10b981; background: none; -webkit-text-fill-color: #10b981;">Financeiro SELA</h2>
+            </div>
+            
+            <nav class="main-nav" style="margin-top: 16px;">
+                <a href="#" class="nav-item active" id="menuDashboard">📊 Painel Geral</a>
+                <a href="#" class="nav-item" id="menuLivroCaixa">📓 Livro Caixa</a>
+                <a href="#" class="nav-item" id="menuMensalidades">👥 Mensalidades</a>
+                <a href="#" class="nav-item" id="menuConciliacao">🏦 Conciliar OFX</a>
+                <a href="#" class="nav-item" id="menuRelatorios">📄 Relatórios</a>
+            </nav>
+            
+            <div class="user-profile">
+                <div class="user-avatar" id="userAvatar">T</div>
+                <div class="user-info">
+                    <span class="user-name">Tesouraria</span>
+                    <span class="user-role" id="userEmailDisplay">carregando...</span>
+                </div>
+                <button id="btnSair" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 8px;" title="Sair">🚪</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content-area">
+            <header class="topbar">
+                <div>
+                    <h1 id="pageTitle">Painel Geral</h1>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;" id="pageSubtitle">Resumo financeiro da casa.</p>
+                </div>
+                <div class="topbar-actions">
+                    <span style="font-size: 14px; font-weight: 500; color: var(--text-muted);" id="currentMonthLabel">Agosto 2026</span>
+                </div>
+            </header>
+
+            <div class="content-body" id="viewDashboard">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; margin-bottom: 32px;">
+                    <div class="finance-card">
+                        <span class="finance-card-title">Saldo Anterior</span>
+                        <span class="finance-card-value value-neutral" id="dashSaldoAnterior">R$ 0,00</span>
+                    </div>
+                    <div class="finance-card">
+                        <span class="finance-card-title">Entradas (Mês)</span>
+                        <span class="finance-card-value value-positive" id="dashEntradas">+ R$ 0,00</span>
+                    </div>
+                    <div class="finance-card">
+                        <span class="finance-card-title">Saídas (Mês)</span>
+                        <span class="finance-card-value value-negative" id="dashSaidas">- R$ 0,00</span>
+                    </div>
+                    <div class="finance-card" style="border-color: #10b981; background: rgba(16, 185, 129, 0.05);">
+                        <span class="finance-card-title">Saldo Atual</span>
+                        <span class="finance-card-value value-positive" id="dashSaldoAtual">R$ 0,00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: Livro Caixa -->
+            <div class="content-body" id="viewLivroCaixa" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <div style="display: flex; gap: 16px;">
+                        <select id="filtroMes" style="padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-panel); color: var(--text-main);">
+                            <option value="01">Janeiro</option><option value="02">Fevereiro</option><option value="03">Março</option><option value="04">Abril</option>
+                            <option value="05">Maio</option><option value="06">Junho</option><option value="07">Julho</option><option value="08" selected>Agosto</option>
+                            <option value="09">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+                        </select>
+                        <select id="filtroAno" style="padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-panel); color: var(--text-main);">
+                            <option value="2025">2025</option><option value="2026" selected>2026</option>
+                        </select>
+                        <button class="btn btn-secondary" id="btnFiltrarCaixa">Filtrar</button>
+                    </div>
+                    <button class="btn btn-primary" id="btnNovaTransacao" style="background: #10b981;">+ Novo Lançamento</button>
+                </div>
+
+                <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead style="background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border);">
+                            <tr>
+                                <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px;">DATA</th>
+                                <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px;">DESCRIÇÃO / NOME</th>
+                                <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px;">CATEGORIA</th>
+                                <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px;">TIPO</th>
+                                <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px;">STATUS</th>
+                                <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: right;">VALOR</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaCaixaBody">
+                            <tr>
+                                <td colspan="6" style="padding: 24px; text-align: center; color: var(--text-muted);">Carregando lançamentos...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Novo Lançamento -->
+    <div class="modal-overlay" id="modalTransacao" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000;">
+        <div class="modal-content" style="background: var(--bg-panel); padding: 32px; border-radius: 16px; border: 1px solid var(--border); width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 style="font-size: 20px;">Novo Lançamento</h2>
+                <button onclick="document.getElementById('modalTransacao').style.display='none'" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 20px;">&times;</button>
+            </div>
+            
+            <form id="formNovaTransacao" style="display: flex; flex-direction: column; gap: 16px;">
+                <div style="display: flex; gap: 16px;">
+                    <div style="flex: 1;">
+                        <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px;">Tipo *</label>
+                        <select id="inTipo" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+                            <option value="Receita">Receita (+)</option>
+                            <option value="Despesa">Despesa (-)</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px;">Data do Pagamento *</label>
+                        <input type="date" id="inDataPagamento" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white; color-scheme: dark;">
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 16px;">
+                    <div style="flex: 1;">
+                        <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px;">Valor (R$) *</label>
+                        <input type="number" id="inValor" step="0.01" min="0" placeholder="0.00" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px;">Competência (MM/AAAA) *</label>
+                        <input type="text" id="inCompetencia" placeholder="Ex: 08/2026" required pattern="[0-9]{2}/[0-9]{4}" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+                    </div>
+                </div>
+
+                <div>
+                    <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px;">Descrição *</label>
+                    <input type="text" id="inDescricao" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+                </div>
+
+                <div>
+                    <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px;">Pessoa / Nome Livre (Opcional)</label>
+                    <input type="text" id="inNomeLivre" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+                </div>
+                
+                <div style="display: flex; gap: 16px;">
+                    <div style="flex: 1;">
+                        <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px;">Categoria (Opcional)</label>
+                        <input type="text" id="inCategoria" placeholder="Ex: Doação, Energia Elétrica..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px;">Status *</label>
+                        <select id="inStatus" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+                            <option value="Pago">Pago / Recebido</option>
+                            <option value="Pendente">Pendente</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" id="btnSalvarTransacao" style="margin-top: 16px; padding: 12px; width: 100%; font-size: 16px; background: #10b981;">Gravar Lançamento</button>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>
