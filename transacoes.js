@@ -114,10 +114,13 @@ async function carregarTransacoes() {
     const competencia = `${mes}/${ano}`;
     
     try {
-        // Busca na tabela 'fin_transacoes' (precisaremos criá-la no Supabase)
+        // Formatar o mês/ano para YYYY-MM-%
+        const ano_mes_busca = `${ano}-${mes}-%`;
+        
+        // Busca na tabela 'fin_transacoes' pela Data de Pagamento (Regime de Caixa)
         const { data, error } = await db.from('fin_transacoes')
             .select('*')
-            .eq('competencia', competencia)
+            .like('data_pagamento', ano_mes_busca)
             .order('data_pagamento', { ascending: false });
             
         if (error) throw error;
@@ -125,7 +128,7 @@ async function carregarTransacoes() {
         tbody.innerHTML = '';
         
         if (!data || data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="padding: 24px; text-align: center; color: var(--text-muted);">Nenhuma transação encontrada para ${competencia}.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" style="padding: 24px; text-align: center; color: var(--text-muted);">Nenhum pagamento registrado em ${competencia}.</td></tr>`;
             return;
         }
         
