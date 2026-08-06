@@ -104,6 +104,28 @@ async function renderizarTabelaOfx() {
         }
     } catch(e) { console.error("Erro ao carregar configs pro OFX:", e); }
     
+    // Deduplicação: Buscar FITIDs já cadastrados no banco
+    try {
+        const { data: dbTransacoes } = await db.from('fin_transacoes')
+            .select('descricao')
+            .like('descricao', '%FITID:%');
+            
+        if (dbTransacoes) {
+            const fitidsSalvos = dbTransacoes.map(t => {
+                if (!t.descricao) return null;
+                const match = t.descricao.match(/FITID:\s*([^\)]+)/i);
+                return match ? match[1].trim() : null;
+            }).filter(id => id);
+            
+            transacoesOfx = transacoesOfx.filter(t => !fitidsSalvos.includes(t.fitid));
+            
+            if (transacoesOfx.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="padding: 24px; text-align: center; color: var(--success); font-weight: 500;">✨ Tudo em dia! Todas as transações deste arquivo já foram importadas e conciliadas.</td></tr>';
+                return;
+            }
+        }
+    } catch(e) { console.error("Erro na deduplicação do OFX:", e); }
+    
     tbody.innerHTML = '';
     
     // Ordenar por data
