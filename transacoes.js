@@ -13,8 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         limparMenus();
         menuDashboard.classList.add('active');
+        document.querySelectorAll('.content-body').forEach(el => el.style.display = 'none');
         viewDashboard.style.display = 'block';
-        viewLivroCaixa.style.display = 'none';
         document.getElementById('pageTitle').innerText = 'Painel Geral';
         document.getElementById('pageSubtitle').innerText = 'Resumo financeiro da casa.';
         carregarDashboard();
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         limparMenus();
         menuLivroCaixa.classList.add('active');
-        viewDashboard.style.display = 'none';
+        document.querySelectorAll('.content-body').forEach(el => el.style.display = 'none');
         viewLivroCaixa.style.display = 'block';
         document.getElementById('pageTitle').innerText = 'Livro Caixa';
         document.getElementById('pageSubtitle').innerText = 'Controle de Entradas e Saídas.';
@@ -114,13 +114,16 @@ async function carregarTransacoes() {
     const competencia = `${mes}/${ano}`;
     
     try {
-        // Formatar o mês/ano para YYYY-MM-%
-        const ano_mes_busca = `${ano}-${mes}-%`;
+        // Obter último dia do mês para a busca
+        const ultimoDia = new Date(ano, mes, 0).getDate();
+        const dataInicio = `${ano}-${mes}-01`;
+        const dataFim = `${ano}-${mes}-${ultimoDia}`;
         
         // Busca na tabela 'fin_transacoes' pela Data de Pagamento (Regime de Caixa)
         const { data, error } = await db.from('fin_transacoes')
             .select('*')
-            .like('data_pagamento', ano_mes_busca)
+            .gte('data_pagamento', dataInicio)
+            .lte('data_pagamento', dataFim)
             .order('data_pagamento', { ascending: false });
             
         if (error) throw error;
