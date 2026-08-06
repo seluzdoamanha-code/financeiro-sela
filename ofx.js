@@ -84,6 +84,8 @@ async function renderizarTabelaOfx() {
     // Fetch unique config (rules + categories)
     let cats = [];
     let regras = [];
+    let recArr = [];
+    let despArr = [];
     try {
         const { data } = await db.from('configuracoes').select('*');
         if (data) {
@@ -96,8 +98,8 @@ async function renderizarTabelaOfx() {
                     try { regras = JSON.parse(cfg.valor); } catch(e) {}
                 }
             });
-            const recArr = (rec || "").split('\n').map(s => s.trim()).filter(s => s);
-            const despArr = (desp || "").split('\n').map(s => s.trim()).filter(s => s);
+            recArr = (rec || "").split('\n').map(s => s.trim()).filter(s => s);
+            despArr = (desp || "").split('\n').map(s => s.trim()).filter(s => s);
             cats = [...recArr, ...despArr].sort();
         }
     } catch(e) { console.error("Erro ao carregar configs pro OFX:", e); }
@@ -130,9 +132,15 @@ async function renderizarTabelaOfx() {
             }
         }
         
-        // Construir Options do Select
+        // Construir Options do Select filtrado por tipo
         let optionsHtml = '<option value="">-- Selecione Categoria --</option>';
         cats.forEach(c => {
+            const isRec = recArr.includes(c);
+            const isDesp = despArr.includes(c);
+            
+            if (t.valor >= 0 && !isRec) return;
+            if (t.valor < 0 && !isDesp) return;
+            
             const isSelected = (c === catSelecionada) ? 'selected' : '';
             optionsHtml += `<option value="${c}" ${isSelected}>${c}</option>`;
         });
@@ -183,11 +191,10 @@ window.conciliarOfx = async function(index) {
         data_pagamento: t.data,
         valor: Math.abs(t.valor),
         competencia: competencia,
-        descricao: t.descricao,
+        descricao: t.descricao + ` (FITID: ${t.fitid})`,
         nome_livre: nomeLivre || null,
         categoria: categoria || null,
-        status: 'Pago',
-        observacoes: `Importado via OFX. FITID: ${t.fitid}`
+        status: 'Pago'
     };
     
     try {
