@@ -38,8 +38,8 @@ function processarOFX(conteudo) {
     const tbody = document.getElementById('tabelaOfxBody');
     tbody.innerHTML = '<tr><td colspan="5" style="padding: 24px; text-align: center; color: var(--text-muted);">Processando arquivo...</td></tr>';
     
-    // Regex para extrair as STMTTRN
-    const stmttrnRegex = /<STMTTRN>([\s\S]*?)<\/STMTTRN>/g;
+    // Regex para extrair as STMTTRN (suporta OFX SGML sem tags de fechamento)
+    const stmttrnRegex = /<STMTTRN>([\s\S]*?)(?=<STMTTRN>|<\/STMTTRN>|<\/BANKTRANLIST>)/gi;
     let match;
     transacoesOfx = [];
     
