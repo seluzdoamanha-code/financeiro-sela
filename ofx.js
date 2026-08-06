@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 let transacoesOfx = [];
 
-function processarOFX(conteudo) {
+async function processarOFX(conteudo) {
     // 1. Extrair informações básicas do OFX
     const tbody = document.getElementById('tabelaOfxBody');
     tbody.innerHTML = '<tr><td colspan="5" style="padding: 24px; text-align: center; color: var(--text-muted);">Processando arquivo...</td></tr>';
