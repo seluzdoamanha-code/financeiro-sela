@@ -22,6 +22,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="auth.js" defer></script>
     <script src="transacoes.js" defer></script>
+    <script src="ofx.js" defer></script>
     <script src="mensalidades.js" defer></script>
     <script src="documentos.js" defer></script>
     <script src="relatorios.js" defer></script>
@@ -417,6 +418,16 @@
                         
                         <!-- Rodapé com botão de WhatsApp -->
                         <div style="padding: 16px; border-top: 1px solid var(--border); background: rgba(0,0,0,0.2);">
+                            <div style="margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
+                                <div style="width: 100%; text-align: center; font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Enviar Pix Copia e Cola (WhatsApp)</div>
+                                <button class="btn btn-secondary btn-pix" data-valor="10" style="padding: 4px 8px; font-size: 12px; border: 1px solid #10b981; color: #10b981; background: transparent;">R$ 10</button>
+                                <button class="btn btn-secondary btn-pix" data-valor="20" style="padding: 4px 8px; font-size: 12px; border: 1px solid #10b981; color: #10b981; background: transparent;">R$ 20</button>
+                                <button class="btn btn-secondary btn-pix" data-valor="25" style="padding: 4px 8px; font-size: 12px; border: 1px solid #10b981; color: #10b981; background: transparent;">R$ 25</button>
+                                <button class="btn btn-secondary btn-pix" data-valor="30" style="padding: 4px 8px; font-size: 12px; border: 1px solid #10b981; color: #10b981; background: transparent;">R$ 30</button>
+                                <button class="btn btn-secondary btn-pix" data-valor="50" style="padding: 4px 8px; font-size: 12px; border: 1px solid #10b981; color: #10b981; background: transparent;">R$ 50</button>
+                                <button class="btn btn-secondary btn-pix" data-valor="100" style="padding: 4px 8px; font-size: 12px; border: 1px solid #10b981; color: #10b981; background: transparent;">R$ 100</button>
+                                <button class="btn btn-secondary btn-pix" data-valor="250" style="padding: 4px 8px; font-size: 12px; border: 1px solid #10b981; color: #10b981; background: transparent;">R$ 250</button>
+                            </div>
                             <button class="btn btn-secondary" id="btnCobrarAtrasos" style="width: 100%; background: #f59e0b; color: white; border: none; font-weight: 600;">
                                 💬 Cobrar Atrasos (WhatsApp)
                             </button>
@@ -483,6 +494,40 @@
                         </thead>
                         <tbody id="tabelaRelatorioBody">
                             <!-- Injetado -->
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+            </div>
+
+            <!-- VIEW: Conciliação OFX -->
+            <div id="viewConciliacao" class="content-body" style="display: none; padding: 32px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <div>
+                        <h2 style="margin: 0 0 8px 0;">🏦 Conciliação Bancária (OFX)</h2>
+                        <p style="color: var(--text-muted); margin: 0; font-size: 14px;">Importe o extrato do banco para conciliar com os lançamentos.</p>
+                    </div>
+                    <div>
+                        <input type="file" id="fileOfx" accept=".ofx" style="display: none;">
+                        <button class="btn btn-primary" onclick="document.getElementById('fileOfx').click()" style="background: #10b981;">+ Importar OFX</button>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead style="background: var(--bg-dark); border-bottom: 1px solid var(--border);">
+                            <tr>
+                                <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px;">Data</th>
+                                <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px;">Descrição OFX</th>
+                                <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px;">Valor</th>
+                                <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px;">Conciliação (Livro Caixa)</th>
+                                <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: center;">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaOfxBody">
+                            <tr>
+                                <td colspan="5" style="padding: 24px; text-align: center; color: var(--text-muted);">Nenhum arquivo OFX importado.</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -715,6 +760,11 @@ Muito obrigado pelas suas contribuições ao longo deste ano! Segue o seu extrat
                         </select>
                     </div>
                 </div>
+
+                <div>
+                    <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px;">Anexar Comprovante / Arquivo (Opcional)</label>
+                    <input type="file" id="inTransacaoAnexo" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+                </div>
                 
                 <button type="submit" class="btn btn-primary" id="btnSalvarTransacao" style="margin-top: 16px; padding: 12px; width: 100%; font-size: 16px; background: #10b981;">Gravar Lançamento</button>
             </form>
@@ -790,8 +840,8 @@ Muito obrigado pelas suas contribuições ao longo deste ano! Segue o seu extrat
                 </div>
                 
                 <div>
-                    <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px;">Anexar Arquivo *</label>
-                    <input type="file" id="docArquivo" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+                    <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px;">Anexar Arquivo (Opcional)</label>
+                    <input type="file" id="docArquivo" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
                 </div>
 
                 <button type="submit" class="btn btn-primary" id="btnSalvarDocumento" style="margin-top: 16px; padding: 12px; width: 100%; font-size: 16px; background: #10b981;">Fazer Upload</button>

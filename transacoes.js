@@ -123,6 +123,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 nomeFim = selectPessoa.options[selectPessoa.selectedIndex].text;
             }
             
+            const fileInput = document.getElementById('inTransacaoAnexo');
+            let anexoUrl = null;
+            if (fileInput && fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const fileExt = file.name.split('.').pop();
+                const fileName = `transacao_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+                const filePath = `comprovantes/${fileName}`;
+                
+                btn.innerText = 'Enviando anexo...';
+                const { error: uploadError } = await db.storage
+                    .from('documentos')
+                    .upload(filePath, file);
+                    
+                if (uploadError) throw uploadError;
+                
+                const { data: publicUrlData } = db.storage.from('documentos').getPublicUrl(filePath);
+                anexoUrl = publicUrlData.publicUrl;
+                btn.innerText = 'Salvando Lançamento...';
+            }
+            
             const transacao = {
                 cpf: cpfFim,
                 tipo: document.getElementById('inTipo').value,
@@ -134,6 +154,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 categoria: document.getElementById('inCategoria').value || null,
                 status: document.getElementById('inStatus').value
             };
+            
+            if (anexoUrl) {
+                transacao.anexo_url = anexoUrl;
+            }
             
             let query;
             if (id) {
@@ -275,6 +299,7 @@ async function carregarTransacoes() {
                     ${sinal} ${valorFormatado}
                 </td>
                 <td style="padding: 16px; font-size: 14px; text-align: center;">
+                    ${t.anexo_url ? `<a href="${t.anexo_url}" target="_blank" class="btn" style="padding: 6px; background: transparent; color: var(--primary); font-size: 16px; text-decoration: none;" title="Ver Anexo">📎</a>` : ''}
                     <button class="btn" style="padding: 6px; background: transparent; color: var(--text-main); font-size: 16px;" onclick="editarTransacao('${t.id}')" title="Editar">✏️</button>
                     <button class="btn" style="padding: 6px; background: transparent; color: #ef4444; font-size: 16px;" onclick="excluirTransacao('${t.id}')" title="Excluir">🗑️</button>
                 </td>

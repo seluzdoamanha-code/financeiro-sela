@@ -83,7 +83,7 @@ async function carregarDocumentos() {
                 const origemReal = doc.origem || 'Portal'; 
                 const origemBadge = getOrigemBadge(origemReal);
                 
-                let arquivoLink = '-';
+                let arquivoLink = '<span style="color: var(--text-muted); font-size: 13px;">Apenas Lembrete</span>';
                 if (doc.arquivo_url) {
                     arquivoLink = `<a href="${doc.arquivo_url}" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 500;">📎 Ver Arquivo</a>`;
                 }
@@ -159,8 +159,6 @@ async function salvarNovoDocumento(e) {
             
             const { data: publicUrlData } = db.storage.from('documentos').getPublicUrl(filePath);
             arquivoUrl = publicUrlData.publicUrl;
-        } else {
-            throw new Error("Selecione um arquivo para arquivar.");
         }
         
         let remetenteLogado = 'Financeiro SELA';

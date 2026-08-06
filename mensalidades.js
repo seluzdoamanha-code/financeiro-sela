@@ -547,3 +547,42 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// Event Listeners para botões Pix
+document.querySelectorAll('.btn-pix').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        if (!associadoAtivo) {
+            alert("Selecione um associado na lista primeiro!");
+            return;
+        }
+        
+        let celular = associadoAtivo.celular;
+        if (!celular) {
+            celular = prompt(`O cadastro de ${associadoAtivo.nome_completo} não possui celular. Digite o número com DDD para continuar:`);
+            if (!celular) return;
+        }
+        
+        let celLimpo = String(celular).replace(/\D/g, '');
+        if (celLimpo.length <= 11) celLimpo = '55' + celLimpo;
+        
+        const valor = btn.getAttribute('data-valor');
+        
+        const payloads = {
+            '10': '00020126360014br.gov.bcb.pix011407031176000174520400005303986540510.005802BR5925Sociedade Espirita Luz do6009Joinville62070503***63041216',
+            '20': '00020126360014br.gov.bcb.pix011407031176000174520400005303986540520.005802BR5925Sociedade Espirita Luz do6009Joinville62070503***63045D0F',
+            '25': '00020126360014br.gov.bcb.pix011407031176000174520400005303986540525.005802BR5925Sociedade Espirita Luz do6009Joinville62070503***63041267',
+            '30': '00020126360014br.gov.bcb.pix011407031176000174520400005303986540530.005802BR5925Sociedade Espirita Luz do6009Joinville62070503***630467F8',
+            '50': '00020126360014br.gov.bcb.pix011407031176000174520400005303986540550.005802BR5925Sociedade Espirita Luz do6009Joinville62070503***6304F9CA',
+            '100': '00020126360014br.gov.bcb.pix0114070311760001745204000053039865406100.005802BR5925Sociedade Espirita Luz do6009Joinville62070503***63049FAD',
+            '250': '00020126360014br.gov.bcb.pix0114070311760001745204000053039865406250.005802BR5925Sociedade Espirita Luz do6009Joinville62070503***6304EEAD'
+        };
+        
+        const codigo = payloads[valor];
+        const nomeCurto = associadoAtivo.nome_completo.split(' ')[0];
+        
+        const msg = `Olá, ${nomeCurto}!\nSegue a chave Pix "Copia e Cola" no valor de R$ ${valor},00 para a sua mensalidade:\n\n${codigo}\n\n*A Sociedade Espírita Luz do Amanhã agradece!*`;
+        
+        const link = `https://wa.me/${celLimpo}?text=${encodeURIComponent(msg)}`;
+        window.open(link, '_blank');
+    });
+});
