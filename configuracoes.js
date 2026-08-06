@@ -75,6 +75,9 @@ async function carregarConfiguracoes() {
                     document.getElementById('cfgCorPrimariaHex').value = cfg.valor;
                     document.documentElement.style.setProperty('--primary', cfg.valor);
                 }
+                if (cfg.chave === 'fin_plano_contas' && cfg.valor) {
+                    document.getElementById('cfgPlanoContas').value = cfg.valor;
+                }
             });
         }
     } catch (err) {
@@ -91,7 +94,8 @@ async function salvarConfiguracoes() {
         { chave: 'msg_cobranca_mensalidade', valor: document.getElementById('cfgMsgLembrete').value },
         { chave: 'msg_comunicado', valor: document.getElementById('cfgMsgComunicado').value },
         { chave: 'msg_agradecimento', valor: document.getElementById('cfgMsgAgradecimento').value },
-        { chave: 'tema_cor_primaria', valor: document.getElementById('cfgCorPrimariaHex').value }
+        { chave: 'tema_cor_primaria', valor: document.getElementById('cfgCorPrimariaHex').value },
+        { chave: 'fin_plano_contas', valor: document.getElementById('cfgPlanoContas').value }
     ];
     
     try {

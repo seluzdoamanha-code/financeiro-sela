@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // Modal Novo Lançamento
-    document.getElementById('btnNovaTransacao').addEventListener('click', () => {
+    document.getElementById('btnNovaTransacao').addEventListener('click', async () => {
         document.getElementById('formNovaTransacao').reset();
         
         // Define a data atual como padrão
@@ -58,6 +58,27 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('inCompetencia').value = `${mes}/${ano}`;
         
         document.getElementById('modalTransacao').style.display = 'flex';
+        
+        // Carregar categorias dinamicamente
+        const selCategoria = document.getElementById('inCategoria');
+        selCategoria.innerHTML = '<option value="">Carregando...</option>';
+        try {
+            const { data } = await db.from('configuracoes').select('valor').eq('chave', 'fin_plano_contas').single();
+            selCategoria.innerHTML = '<option value="">Selecione...</option>';
+            if (data && data.valor) {
+                const linhas = data.valor.split('\\n');
+                linhas.forEach(cat => {
+                    if (cat.trim()) {
+                        const opt = document.createElement('option');
+                        opt.value = cat.trim();
+                        opt.innerText = cat.trim();
+                        selCategoria.appendChild(opt);
+                    }
+                });
+            }
+        } catch (e) {
+            selCategoria.innerHTML = '<option value="">Erro ao carregar categorias</option>';
+        }
     });
     
     // Submeter Novo Lançamento

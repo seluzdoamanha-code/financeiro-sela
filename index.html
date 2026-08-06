@@ -424,6 +424,9 @@
                             <a href="#" class="config-tab" data-target="tabAparencia" style="padding: 12px; border-radius: 8px; color: var(--text-main); text-decoration: none; display: flex; align-items: center; gap: 8px; transition: 0.2s;">
                                 🎨 Aparência
                             </a>
+                            <a href="#" class="config-tab" data-target="tabPlanoContas" style="padding: 12px; border-radius: 8px; color: var(--text-main); text-decoration: none; display: flex; align-items: center; gap: 8px; transition: 0.2s;">
+                                🗂️ Plano de Contas
+                            </a>
                         </nav>
                         
                         <style>
@@ -481,6 +484,14 @@ Muito obrigado pelas suas contribuições ao longo deste ano! Segue o seu extrat
                                     </div>
                                 </div>
                             </div>
+                            
+                            <!-- Aba Plano de Contas -->
+                            <div id="tabPlanoContas" class="config-content" style="display: none;">
+                                <h3 style="margin-top: 0; margin-bottom: 8px;">Plano de Contas (Categorias)</h3>
+                                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Digite uma categoria por linha. Elas aparecerão como opções na hora de fazer um Novo Lançamento.</p>
+                                
+                                <textarea id="cfgPlanoContas" rows="15" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-dark); color: white; font-family: inherit; font-size: 14px; resize: vertical;" placeholder="Doação&#10;Mensalidade&#10;Energia Elétrica&#10;Água&#10;Material de Escritório..."></textarea>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -535,7 +546,9 @@ Muito obrigado pelas suas contribuições ao longo deste ano! Segue o seu extrat
                 <div style="display: flex; gap: 16px;">
                     <div style="flex: 1;">
                         <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px;">Categoria (Opcional)</label>
-                        <input type="text" id="inCategoria" placeholder="Ex: Doação, Energia Elétrica..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+                        <select id="inCategoria" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+                            <option value="">Selecione...</option>
+                        </select>
                     </div>
                     <div style="flex: 1;">
                         <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px;">Status *</label>
