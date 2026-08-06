@@ -30,7 +30,7 @@ async function carregarListaAssociados() {
         // Busca as Pessoas lá da tabela central do Portal (assumindo que a tabela se chama 'pessoas')
         // Vamos buscar todos e depois filtrar localmente, ou buscar apenas quem tem status/cargo específico
         const { data: pessoas, error } = await db.from('pessoas')
-            .select('id, cpf_cnpj, nome_completo, email, papeis')
+            .select('id, cpf_cnpj, nome_completo, email, papeis, telefone')
             .contains('papeis', ['Associado Efetivo'])
             .order('nome_completo', { ascending: true });
             
@@ -140,6 +140,7 @@ document.getElementById('btnSalvarConfigMensalidade').addEventListener('click', 
         
         // Recarrega a tabela para atualizar cores de Atrasado baseadas no novo Vencimento
         gerarTabelaMensalidadesReal(associadoAtivo);
+        sinalizarAtrasos([associadoAtivo]);
     } catch (err) {
         console.error(err);
         alert('Erro ao salvar configuração: ' + err.message);
@@ -363,9 +364,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            let celular = associadoAtivo.celular;
+            let celular = associadoAtivo.telefone || associadoAtivo.celular;
             if (!celular) {
-                const num = prompt(`O cadastro de ${associadoAtivo.nome_completo} não possui celular. Digite o número com DDD para continuar:`);
+                const num = prompt(`O cadastro de ${associadoAtivo.nome_completo} não possui telefone/celular. Digite o número com DDD para continuar:`);
                 if (!num) return;
                 celular = num;
             }
@@ -395,6 +396,37 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const url = `https://wa.me/${celLimpo}?text=${encodeURIComponent(msg)}`;
             window.open(url, '_blank');
+        });
+    }
+
+    const btnExtrato = document.getElementById('btnEnviarExtrato');
+    if (btnExtrato) {
+        btnExtrato.addEventListener('click', async () => {
+            if (!associadoAtivo) {
+                alert("Selecione um associado primeiro.");
+                return;
+            }
+            
+            let celular = associadoAtivo.telefone || associadoAtivo.celular;
+            if (!celular) {
+                celular = prompt(`O cadastro de ${associadoAtivo.nome_completo} não possui telefone. Digite o número com DDD para continuar:`);
+                if (!celular) return;
+            }
+            
+            let template = "Muito obrigado pelas suas contribuições ao longo deste ano! Segue o seu extrato.";
+            try {
+                const { data } = await db.from('configuracoes').select('valor').eq('chave', 'msg_agradecimento_anual').single();
+                if (data && data.valor) template = data.valor;
+            } catch (e) {
+                console.log("Usando template padrão para extrato.");
+            }
+            
+            const msg = template.replace('{nome}', associadoAtivo.nome_completo.split(' ')[0]);
+            let celLimpo = celular.replace(/\\D/g, '');
+            if (celLimpo.length <= 11) celLimpo = '55' + celLimpo;
+            
+            const link = `https://wa.me/${celLimpo}?text=${encodeURIComponent(msg)}`;
+            window.open(link, '_blank');
         });
     }
 });
