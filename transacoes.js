@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('pageTitle').innerText = 'Painel Geral';
         document.getElementById('pageSubtitle').innerText = 'Resumo financeiro da casa.';
         carregarDashboard();
+        carregarCaixaEntradaTesouraria();
     });
     
     menuLivroCaixa.addEventListener('click', (e) => {
@@ -38,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Escutar quando o login ocorrer com sucesso (disparado pelo auth.js)
     window.addEventListener('financeiro:auth-success', () => {
         carregarDashboard();
+        carregarCaixaEntradaTesouraria();
     });
     
     // Botão Filtrar no Livro Caixa
@@ -378,5 +380,70 @@ function formatarDocumento(doc) {
     } else if (num.length === 14) {
         return num.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
     }
-    return doc;
 }
+
+// ==========================================
+// CAIXA DE ENTRADA (TESOURARIA)
+// ==========================================
+window.carregarCaixaEntradaTesouraria = async function() {
+    const lista = document.getElementById('listaTesouraria');
+    if (!lista) return;
+    
+    lista.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 24px;">Atualizando...</div>';
+    
+    try {
+        const { data, error } = await db.from('app_tesouraria_envios')
+                                        .select('*')
+                                        .eq('status', 'pendente')
+                                        .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        if (!data || data.length === 0) {
+            lista.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 24px;">Nenhum documento pendente. 🎉</div>';
+            return;
+        }
+        
+        lista.innerHTML = '';
+        data.forEach(item => {
+            const dataEnvio = new Date(item.created_at).toLocaleString('pt-BR');
+            const div = document.createElement('div');
+            div.style.cssText = 'padding: 16px; border: 1px solid var(--border); border-radius: 8px; background: rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;';
+            
+            let htmlArquivo = '';
+            if (item.arquivo_url) {
+                htmlArquivo = `<a href="${item.arquivo_url}" target="_blank" style="display: inline-block; margin-top: 8px; font-size: 13px; color: var(--primary); text-decoration: none;">📎 Visualizar Anexo</a>`;
+            }
+            
+            div.innerHTML = `
+                <div style="flex: 1;">
+                    <div style="font-weight: 500; font-size: 15px;">${item.descricao || 'Sem descrição'}</div>
+                    <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Enviado por: ${item.remetente_nome || 'Desconhecido'} em ${dataEnvio}</div>
+                    ${htmlArquivo}
+                </div>
+                <div>
+                    <button onclick="processarEnvioTesouraria('${item.id}')" style="background: var(--success); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">✓ Arquivar</button>
+                </div>
+            `;
+            lista.appendChild(div);
+        });
+        
+    } catch (err) {
+        lista.innerHTML = `<div style="text-align: center; color: #ef4444; padding: 24px;">Erro ao carregar: ${err.message}</div>`;
+    }
+};
+
+window.processarEnvioTesouraria = async function(id) {
+    if (!confirm("Marcar este documento como Processado/Arquivado?")) return;
+    
+    try {
+        const { error } = await db.from('app_tesouraria_envios')
+                                .update({ status: 'processado' })
+                                .eq('id', id);
+        
+        if (error) throw error;
+        carregarCaixaEntradaTesouraria();
+    } catch (err) {
+        alert("Erro ao processar: " + err.message);
+    }
+};

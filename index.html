@@ -282,9 +282,19 @@
                         <span class="finance-card-title">Saídas (Mês)</span>
                         <span class="finance-card-value value-negative" id="dashSaidas">- R$ 0,00</span>
                     </div>
-                    <div class="finance-card" style="border-color: #10b981; background: rgba(16, 185, 129, 0.05);">
+                    <div class="finance-card">
                         <span class="finance-card-title">Saldo Atual</span>
-                        <span class="finance-card-value value-positive" id="dashSaldoAtual">R$ 0,00</span>
+                        <span class="finance-card-value" style="color: var(--text-main);" id="dashSaldoAtual">R$ 0,00</span>
+                    </div>
+                </div>
+                
+                <div style="background: var(--bg-panel); border-radius: 16px; border: 1px solid var(--border); padding: 24px; margin-bottom: 32px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h3 style="margin: 0;">📥 Documentos Recebidos (Portal)</h3>
+                        <button onclick="carregarCaixaEntradaTesouraria()" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 14px;">Atualizar</button>
+                    </div>
+                    <div id="listaTesouraria" style="display: flex; flex-direction: column; gap: 16px;">
+                        <div style="text-align: center; color: var(--text-muted); padding: 24px;">Buscando mensagens...</div>
                     </div>
                 </div>
             </div>
