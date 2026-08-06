@@ -49,7 +49,9 @@ async function carregarDocumentos() {
     try {
         let query = db.from('app_tesouraria_envios').select('*');
 
-        if (ano) query = query.eq('ano_referencia', parseInt(ano));
+        if (ano) {
+            query = query.or(`ano_referencia.eq.${parseInt(ano)},ano_referencia.is.null`);
+        }
         if (origem) {
             // Se for Portal, no passado salvávamos sem origem. Então tratamos null como Portal também.
             if (origem === 'Portal') {
