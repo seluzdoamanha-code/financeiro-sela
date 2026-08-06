@@ -82,9 +82,11 @@ async function processarOFX(conteudo) {
 
 async function renderizarTabelaOfx() {
     const tbody = document.getElementById('tabelaOfxBody');
+    const headerCount = document.getElementById('ofxCountHeader');
     
     if (transacoesOfx.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" style="padding: 24px; text-align: center; color: var(--text-muted);">Nenhuma transação encontrada no arquivo OFX.</td></tr>';
+        if (headerCount) headerCount.style.display = 'none';
         return;
     }
     
@@ -128,10 +130,16 @@ async function renderizarTabelaOfx() {
             
             if (transacoesOfx.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" style="padding: 24px; text-align: center; color: var(--success); font-weight: 500;">✨ Tudo em dia! Todas as transações deste arquivo já foram importadas e conciliadas.</td></tr>';
+                if (headerCount) headerCount.style.display = 'none';
                 return;
             }
         }
     } catch(e) { console.error("Erro na deduplicação do OFX:", e); }
+    
+    if (headerCount) {
+        headerCount.innerText = `${transacoesOfx.length} pendentes`;
+        headerCount.style.display = 'inline-block';
+    }
     
     tbody.innerHTML = '';
     
