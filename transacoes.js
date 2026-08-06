@@ -412,8 +412,11 @@ function popularSelectPessoas(selectEl, listaPessoas) {
     const optAssociados = document.createElement('optgroup');
     optAssociados.label = 'Associados Efetivos';
     
-    const optOutros = document.createElement('optgroup');
-    optOutros.label = 'Outros';
+    const optPF = document.createElement('optgroup');
+    optPF.label = 'Outras Pessoas Físicas (CPF)';
+    
+    const optPJ = document.createElement('optgroup');
+    optPJ.label = 'Pessoas Jurídicas (CNPJ)';
     
     listaPessoas.forEach(p => {
         const opt = document.createElement('option');
@@ -427,12 +430,18 @@ function popularSelectPessoas(selectEl, listaPessoas) {
         if (p.papeis && JSON.stringify(p.papeis).includes('Associado Efetivo')) {
             optAssociados.appendChild(opt);
         } else {
-            optOutros.appendChild(opt);
+            const digitos = p.cpf_cnpj ? p.cpf_cnpj.replace(/\D/g, '').length : 0;
+            if (digitos === 14) {
+                optPJ.appendChild(opt);
+            } else {
+                optPF.appendChild(opt);
+            }
         }
     });
     
-    selectEl.appendChild(optAssociados);
-    selectEl.appendChild(optOutros);
+    if (optAssociados.children.length > 0) selectEl.appendChild(optAssociados);
+    if (optPF.children.length > 0) selectEl.appendChild(optPF);
+    if (optPJ.children.length > 0) selectEl.appendChild(optPJ);
     
     if (valorAtual) selectEl.value = valorAtual;
 }

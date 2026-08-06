@@ -215,7 +215,8 @@ async function renderizarTabelaOfx() {
             optionsHtml += `<option value="${c}" ${isSelected}>${c}</option>`;
         });
         let optAssociados = '';
-        let optOutros = '';
+        let optPF = '';
+        let optPJ = '';
         
         todasPessoas.forEach(p => {
             const isSelected = (associadoEncontrado && associadoEncontrado.cpf_cnpj === p.cpf_cnpj) ? 'selected' : '';
@@ -228,13 +229,19 @@ async function renderizarTabelaOfx() {
             if (p.papeis && JSON.stringify(p.papeis).includes('Associado Efetivo')) {
                 optAssociados += optHtml;
             } else {
-                optOutros += optHtml;
+                const digitos = p.cpf_cnpj ? p.cpf_cnpj.replace(/\D/g, '').length : 0;
+                if (digitos === 14) {
+                    optPJ += optHtml;
+                } else {
+                    optPF += optHtml;
+                }
             }
         });
         
         let pessoasOptionsHtml = '<option value="">-- Vincular Pessoa (Opcional) --</option>';
         if (optAssociados) pessoasOptionsHtml += `<optgroup label="Associados Efetivos">${optAssociados}</optgroup>`;
-        if (optOutros) pessoasOptionsHtml += `<optgroup label="Outros">${optOutros}</optgroup>`;
+        if (optPF) pessoasOptionsHtml += `<optgroup label="Outras Pessoas Físicas (CPF)">${optPF}</optgroup>`;
+        if (optPJ) pessoasOptionsHtml += `<optgroup label="Pessoas Jurídicas (CNPJ)">${optPJ}</optgroup>`;
         
         tr.innerHTML = `
             <td style="padding: 16px; font-size: 14px;">${dataStr}</td>
