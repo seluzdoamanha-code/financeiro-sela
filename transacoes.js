@@ -48,6 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Modal Novo Lançamento
     document.getElementById('btnNovaTransacao').addEventListener('click', async () => {
         document.getElementById('formNovaTransacao').reset();
+        document.getElementById('inId').value = '';
+        document.getElementById('tituloModalTransacao').innerText = 'Novo Lançamento';
         
         // Define a data atual como padrão
         document.getElementById('inDataPagamento').value = new Date().toISOString().split('T')[0];
@@ -101,6 +103,8 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.disabled = true;
         
         try {
+            const id = document.getElementById('inId').value;
+            
             const transacao = {
                 tipo: document.getElementById('inTipo').value,
                 data_pagamento: document.getElementById('inDataPagamento').value,
@@ -112,7 +116,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 status: document.getElementById('inStatus').value
             };
             
-            const { error } = await db.from('fin_transacoes').insert([transacao]);
+            let query;
+            if (id) {
+                // Editar
+                query = db.from('fin_transacoes').update(transacao).eq('id', id);
+            } else {
+                // Novo
+                query = db.from('fin_transacoes').insert([transacao]);
+            }
+            
+            const { error } = await query;
             
             if (error) throw error;
             
@@ -202,6 +215,10 @@ async function carregarTransacoes() {
                 <td style="padding: 16px; font-size: 14px; font-weight: 600; text-align: right; color: ${corValor};">
                     ${sinal} ${valorFormatado}
                 </td>
+                <td style="padding: 16px; font-size: 14px; text-align: center;">
+                    <button class="btn" style="padding: 6px; background: transparent; color: var(--text-main); font-size: 16px;" onclick="editarTransacao('${t.id}')" title="Editar">✏️</button>
+                    <button class="btn" style="padding: 6px; background: transparent; color: #ef4444; font-size: 16px;" onclick="excluirTransacao('${t.id}')" title="Excluir">🗑️</button>
+                </td>
             `;
             tbody.appendChild(tr);
         });
@@ -211,3 +228,58 @@ async function carregarTransacoes() {
         tbody.innerHTML = `<tr><td colspan="6" style="padding: 24px; text-align: center; color: #ef4444;">Erro ao carregar: ${err.message}</td></tr>`;
     }
 }
+
+// Global functions for inline button calls
+window.editarTransacao = async function(id) {
+    try {
+        const { data, error } = await db.from('fin_transacoes').select('*').eq('id', id).single();
+        if (error) throw error;
+        
+        document.getElementById('inId').value = data.id;
+        document.getElementById('inTipo').value = data.tipo;
+        document.getElementById('inDataPagamento').value = data.data_pagamento;
+        document.getElementById('inValor').value = data.valor;
+        document.getElementById('inCompetencia').value = data.competencia;
+        document.getElementById('inDescricao').value = data.descricao;
+        document.getElementById('inNomeLivre').value = data.nome_livre || '';
+        document.getElementById('inStatus').value = data.status;
+        
+        document.getElementById('tituloModalTransacao').innerText = 'Editar Lançamento';
+        
+        // Puxar as categorias corretas e depois setar o valor
+        const tipoAtual = data.tipo;
+        const chaveBusca = tipoAtual === 'Receita' ? 'fin_plano_receitas' : 'fin_plano_despesas';
+        const selCategoria = document.getElementById('inCategoria');
+        
+        const { data: cfg } = await db.from('configuracoes').select('valor').eq('chave', chaveBusca).single();
+        selCategoria.innerHTML = '<option value="">Selecione...</option>';
+        if (cfg && cfg.valor) {
+            cfg.valor.split('\\n').forEach(cat => {
+                if (cat.trim()) {
+                    const opt = document.createElement('option');
+                    opt.value = cat.trim();
+                    opt.innerText = cat.trim();
+                    selCategoria.appendChild(opt);
+                }
+            });
+        }
+        
+        selCategoria.value = data.categoria || '';
+        document.getElementById('modalTransacao').style.display = 'flex';
+        
+    } catch (err) {
+        alert("Erro ao buscar transação: " + err.message);
+    }
+};
+
+window.excluirTransacao = async function(id) {
+    if (!confirm("Tem certeza que deseja excluir este lançamento? Esta ação não pode ser desfeita.")) return;
+    
+    try {
+        const { error } = await db.from('fin_transacoes').delete().eq('id', id);
+        if (error) throw error;
+        carregarTransacoes();
+    } catch (err) {
+        alert("Erro ao excluir: " + err.message);
+    }
+};

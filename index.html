@@ -316,6 +316,7 @@
                                 <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px;">TIPO</th>
                                 <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px;">STATUS</th>
                                 <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: right;">VALOR</th>
+                                <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: center;">AÇÕES</th>
                             </tr>
                         </thead>
                         <tbody id="tabelaCaixaBody">
@@ -512,11 +513,12 @@ Muito obrigado pelas suas contribuições ao longo deste ano! Segue o seu extrat
     <div class="modal-overlay" id="modalTransacao" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000;">
         <div class="modal-content" style="background: var(--bg-panel); padding: 32px; border-radius: 16px; border: 1px solid var(--border); width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <h2 style="font-size: 20px;">Novo Lançamento</h2>
+                <h2 id="tituloModalTransacao" style="font-size: 20px;">Novo Lançamento</h2>
                 <button onclick="document.getElementById('modalTransacao').style.display='none'" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 20px;">&times;</button>
             </div>
             
             <form id="formNovaTransacao" style="display: flex; flex-direction: column; gap: 16px;">
+                <input type="hidden" id="inId">
                 <div style="display: flex; gap: 16px;">
                     <div style="flex: 1;">
                         <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px;">Tipo *</label>
