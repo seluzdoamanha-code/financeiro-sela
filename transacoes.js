@@ -59,11 +59,22 @@ document.addEventListener('DOMContentLoaded', () => {
         
         document.getElementById('modalTransacao').style.display = 'flex';
         
-        // Carregar categorias dinamicamente
+        carregarCategoriasDinamicas();
+    });
+    
+    // Atualizar categorias quando trocar Receita/Despesa
+    document.getElementById('inTipo').addEventListener('change', () => {
+        carregarCategoriasDinamicas();
+    });
+    
+    async function carregarCategoriasDinamicas() {
         const selCategoria = document.getElementById('inCategoria');
+        const tipoAtual = document.getElementById('inTipo').value; // 'Receita' ou 'Despesa'
+        const chaveBusca = tipoAtual === 'Receita' ? 'fin_plano_receitas' : 'fin_plano_despesas';
+        
         selCategoria.innerHTML = '<option value="">Carregando...</option>';
         try {
-            const { data } = await db.from('configuracoes').select('valor').eq('chave', 'fin_plano_contas').single();
+            const { data } = await db.from('configuracoes').select('valor').eq('chave', chaveBusca).single();
             selCategoria.innerHTML = '<option value="">Selecione...</option>';
             if (data && data.valor) {
                 const linhas = data.valor.split('\\n');
@@ -77,9 +88,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         } catch (e) {
-            selCategoria.innerHTML = '<option value="">Erro ao carregar categorias</option>';
+            selCategoria.innerHTML = '<option value="">(Sem categorias cadastradas)</option>';
         }
-    });
+    }
     
     // Submeter Novo Lançamento
     document.getElementById('formNovaTransacao').addEventListener('submit', async (e) => {

@@ -75,8 +75,11 @@ async function carregarConfiguracoes() {
                     document.getElementById('cfgCorPrimariaHex').value = cfg.valor;
                     document.documentElement.style.setProperty('--primary', cfg.valor);
                 }
-                if (cfg.chave === 'fin_plano_contas' && cfg.valor) {
-                    document.getElementById('cfgPlanoContas').value = cfg.valor;
+                if (cfg.chave === 'fin_plano_receitas' && cfg.valor) {
+                    document.getElementById('cfgPlanoContasReceitas').value = cfg.valor;
+                }
+                if (cfg.chave === 'fin_plano_despesas' && cfg.valor) {
+                    document.getElementById('cfgPlanoContasDespesas').value = cfg.valor;
                 }
             });
         }
@@ -95,7 +98,8 @@ async function salvarConfiguracoes() {
         { chave: 'msg_comunicado', valor: document.getElementById('cfgMsgComunicado').value },
         { chave: 'msg_agradecimento', valor: document.getElementById('cfgMsgAgradecimento').value },
         { chave: 'tema_cor_primaria', valor: document.getElementById('cfgCorPrimariaHex').value },
-        { chave: 'fin_plano_contas', valor: document.getElementById('cfgPlanoContas').value }
+        { chave: 'fin_plano_receitas', valor: document.getElementById('cfgPlanoContasReceitas').value },
+        { chave: 'fin_plano_despesas', valor: document.getElementById('cfgPlanoContasDespesas').value }
     ];
     
     try {
