@@ -664,5 +664,54 @@ Muito obrigado pelas suas contribuições ao longo deste ano! Segue o seu extrat
         </div>
     </div>
 
+    <!-- Modal Upload de Documento -->
+    <div class="modal-overlay" id="modalDocumento" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000;">
+        <div class="modal-content" style="background: var(--bg-panel); padding: 32px; border-radius: 16px; border: 1px solid var(--border); width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 style="font-size: 20px;">Guardar Novo Documento</h2>
+                <button onclick="document.getElementById('modalDocumento').style.display='none'" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 20px;">&times;</button>
+            </div>
+            
+            <form id="formUploadDocumento" style="display: flex; flex-direction: column; gap: 16px;">
+                <div style="display: flex; gap: 16px;">
+                    <div style="flex: 1;">
+                        <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px;">Origem *</label>
+                        <select id="docOrigem" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+                            <option value="Financeiro">Upload Manual / Financeiro</option>
+                            <option value="OFX">Extrato OFX</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px;">Ano de Referência *</label>
+                        <select id="docAnoRef" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+                            <option value="2026" selected>2026</option>
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px;">Descrição / Identificação *</label>
+                    <input type="text" id="docDescricao" placeholder="Ex: Recibo de Luz - Jan/26" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+                </div>
+                
+                <div>
+                    <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px;">Status *</label>
+                    <select id="docStatus" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+                        <option value="processado" selected>Já Processado / Arquivado</option>
+                        <option value="pendente">Pendente de Análise</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px;">Anexar Arquivo *</label>
+                    <input type="file" id="docArquivo" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="btnSalvarDocumento" style="margin-top: 16px; padding: 12px; width: 100%; font-size: 16px; background: #10b981;">Fazer Upload</button>
+            </form>
+        </div>
+    </div>
 </body>
 </html>
