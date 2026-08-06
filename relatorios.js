@@ -91,10 +91,12 @@ async function carregarRelatorio() {
         let query = db.from('fin_transacoes').select('*');
         
         if (modo === 'anual') {
-            query = query.like('data_pagamento', `${dataRef}-%`);
+            query = query.gte('data_pagamento', `${dataRef}-01-01`).lte('data_pagamento', `${dataRef}-12-31`);
         } else {
             const [m, a] = dataRef.split('/');
-            query = query.like('data_pagamento', `${a}-${m}-%`);
+            // Pega o último dia daquele mês
+            const ultimoDia = new Date(a, parseInt(m), 0).getDate();
+            query = query.gte('data_pagamento', `${a}-${m}-01`).lte('data_pagamento', `${a}-${m}-${ultimoDia}`);
         }
         
         // Apenas transações Pagas
