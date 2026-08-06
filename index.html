@@ -23,6 +23,7 @@
     <script src="auth.js" defer></script>
     <script src="transacoes.js" defer></script>
     <script src="mensalidades.js" defer></script>
+    <script src="documentos.js" defer></script>
     <script src="configuracoes.js" defer></script>
     
     <style>
@@ -239,6 +240,7 @@
                     <span style="font-size: 20px;">👥</span>
                     Mensalidades
                 </a>
+                <a href="#" class="nav-item" id="menuDocumentos">📁 Documentos</a>
                 <a href="#" class="nav-item" id="menuConciliacao">🏦 Conciliar OFX</a>
                 <a href="#" class="nav-item" id="menuConfiguracoes">
                     <span style="font-size: 20px;">⚙️</span>
@@ -290,8 +292,11 @@
                 
                 <div style="background: var(--bg-panel); border-radius: 16px; border: 1px solid var(--border); padding: 24px; margin-bottom: 32px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                        <h3 style="margin: 0;">📥 Documentos Recebidos (Portal)</h3>
-                        <button onclick="carregarCaixaEntradaTesouraria()" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 14px;">Atualizar</button>
+                        <h3 style="margin: 0;">📥 Caixa de Entrada (Portal)</h3>
+                        <div>
+                            <button onclick="carregarCaixaEntradaTesouraria()" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 14px; margin-right: 16px;">Atualizar</button>
+                            <button onclick="document.getElementById('menuDocumentos').click()" style="background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px;">Ver todos os documentos →</button>
+                        </div>
                     </div>
                     <div id="listaTesouraria" style="display: flex; flex-direction: column; gap: 16px;">
                         <div style="text-align: center; color: var(--text-muted); padding: 24px;">Buscando mensagens...</div>
@@ -419,6 +424,49 @@
                 </div>
             </div>
             
+            <!-- VIEW: Documentos (Arquivo Geral) -->
+            <div class="content-body" id="viewDocumentos" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <div style="display: flex; gap: 16px; align-items: center;">
+                        <select id="filtroAnoDoc" style="padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-panel); color: white; min-width: 120px;">
+                            <option value="2026" selected>2026</option>
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                        </select>
+                        <select id="filtroOrigemDoc" style="padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-panel); color: white; min-width: 150px;">
+                            <option value="">Todas as Origens</option>
+                            <option value="Portal">Portal (Inbox)</option>
+                            <option value="Financeiro">Upload Financeiro</option>
+                            <option value="OFX">Extratos OFX</option>
+                        </select>
+                        <select id="filtroStatusDoc" style="padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-panel); color: white; min-width: 150px;">
+                            <option value="">Qualquer Status</option>
+                            <option value="pendente">Pendente</option>
+                            <option value="processado">Processado/Arquivado</option>
+                        </select>
+                        <button id="btnFiltrarDocs" class="btn btn-secondary">Filtrar</button>
+                    </div>
+                    <button id="btnNovoDocumento" class="btn btn-primary" style="background: #10b981; color: white;">+ Guardar Documento</button>
+                </div>
+                
+                <div class="table-container">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead style="border-bottom: 1px solid var(--border);">
+                            <tr>
+                                <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: left;">DATA E ORIGEM</th>
+                                <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: left;">REMETENTE / DESCRIÇÃO</th>
+                                <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: left;">ARQUIVO</th>
+                                <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: center;">STATUS</th>
+                                <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: center;">AÇÕES</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaDocumentosBody">
+                            <!-- Injetado via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- VIEW: Configurações -->
             <div class="content-body" id="viewConfiguracoes" style="display: none; height: 100%;">
                 <div style="display: flex; gap: 24px; height: 100%;">
