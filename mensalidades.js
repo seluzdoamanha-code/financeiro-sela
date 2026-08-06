@@ -389,6 +389,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 .replace(/{valor}/g, parseFloat(valor).toFixed(2).replace('.', ','))
                 .replace(/{dia}/g, dia)
                 .replace(/{meses}/g, atrasos.join(', '));
+            
+            // Converte o \n literal do banco de dados para quebra de linha real
+            msg = msg.replace(/\\n/g, '\n');
                 
             // Limpa o celular
             let celLimpo = String(celular).replace(/\D/g, '');
@@ -421,7 +424,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log("Usando template padrão para extrato.");
             }
             
-            const msg = template.replace('{nome}', associadoAtivo.nome_completo.split(' ')[0]);
+            let msg = template.replace('{nome}', associadoAtivo.nome_completo.split(' ')[0]);
+            msg = msg.replace(/\\n/g, '\n');
+            
             let celLimpo = String(celular).replace(/\D/g, '');
             if (celLimpo.length <= 11) celLimpo = '55' + celLimpo;
             
