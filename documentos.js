@@ -171,23 +171,32 @@ async function salvarNovoDocumento(e) {
 }
 
 window.marcarDocProcessado = async function(id) {
-    if (!confirm("Tem certeza que deseja marcar como processado/arquivado?")) return;
-    
-    try {
-        const { error } = await db.from('app_tesouraria_envios')
-                                .update({ status: 'processado' })
-                                .eq('id', id);
-        
-        if (error) throw error;
-        carregarDocumentos();
-        
-        // Atualiza inbox geral se tiver a function (evitar undefined)
-        if (typeof carregarCaixaEntradaTesouraria === 'function') {
-            carregarCaixaEntradaTesouraria();
+    abrirModalConfirmacao(
+        "Arquivar Documento", 
+        "Deseja marcar este documento como Processado/Arquivado? Ele ficará salvo no Histórico.",
+        async () => {
+            try {
+                // Adicionando .select() para evitar falha silenciosa de RLS
+                const { data, error } = await db.from('app_tesouraria_envios')
+                                        .update({ status: 'processado' })
+                                        .eq('id', id)
+                                        .select();
+                
+                if (error) throw error;
+                if (!data || data.length === 0) {
+                    throw new Error("Erro de Permissão (RLS): O banco de dados bloqueou silenciosamente sua alteração. A tabela app_tesouraria_envios precisa permitir UPDATE.");
+                }
+                
+                carregarDocumentos();
+                
+                if (typeof carregarCaixaEntradaTesouraria === 'function') {
+                    carregarCaixaEntradaTesouraria();
+                }
+            } catch (err) {
+                alert("Erro ao processar: " + err.message);
+            }
         }
-    } catch (err) {
-        alert("Erro ao processar: " + err.message);
-    }
+    );
 };
 
 function getOrigemBadge(origem) {

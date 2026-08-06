@@ -434,16 +434,31 @@ window.carregarCaixaEntradaTesouraria = async function() {
 };
 
 window.processarEnvioTesouraria = async function(id) {
-    if (!confirm("Marcar este documento como Processado/Arquivado?")) return;
-    
-    try {
-        const { error } = await db.from('app_tesouraria_envios')
-                                .update({ status: 'processado' })
-                                .eq('id', id);
-        
-        if (error) throw error;
-        carregarCaixaEntradaTesouraria();
-    } catch (err) {
-        alert("Erro ao processar: " + err.message);
-    }
+    abrirModalConfirmacao(
+        "Arquivar Documento", 
+        "Deseja marcar este documento como Processado/Arquivado? Ele sairá da sua Caixa de Entrada principal.",
+        async () => {
+            try {
+                // Adicionando .select() para garantir que o Supabase retorne os dados
+                const { data, error } = await db.from('app_tesouraria_envios')
+                                        .update({ status: 'processado' })
+                                        .eq('id', id)
+                                        .select();
+                
+                if (error) throw error;
+                if (!data || data.length === 0) {
+                    throw new Error("O documento não foi atualizado! Pode ser falta de permissão de UPDATE (RLS Policy). Peça ao dev para ajustar a tabela app_tesouraria_envios.");
+                }
+                
+                carregarCaixaEntradaTesouraria();
+                
+                // Atualiza a tela de documentos também se estiver carregada
+                if (typeof carregarDocumentos === 'function') {
+                    carregarDocumentos();
+                }
+            } catch (err) {
+                alert("Erro ao processar: " + err.message);
+            }
+        }
+    );
 };
