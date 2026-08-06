@@ -540,7 +540,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 printWin.print();
                 
                 setTimeout(() => {
-                    const link = \`https://wa.me/\${celLimpo}?text=\${encodeURIComponent(msg)}\`;
+                    const link = `https://wa.me/${celLimpo}?text=${encodeURIComponent(msg)}`;
                     window.open(link, '_blank');
                 }, 1000);
             }, 500);
