@@ -288,6 +288,11 @@ window.editarTransacao = async function(id) {
         }
         
         selCategoria.value = data.categoria || '';
+        
+        // Garante que as pessoas sejam carregadas também ao editar
+        await carregarPessoasModal();
+        document.getElementById('inPessoaSelect').value = data.cpf || '';
+        
         document.getElementById('modalTransacao').style.display = 'flex';
         
     } catch (err) {
@@ -321,7 +326,7 @@ async function carregarPessoasModal() {
     
     selPessoa.innerHTML = '<option value="">Carregando...</option>';
     try {
-        const { data, error } = await db.from('pessoas').select('cpf_cnpj, nome_curto, nome_completo, papeis').order('nome_completo', { ascending: true });
+        const { data, error } = await db.from('pessoas').select('*').order('nome_completo', { ascending: true });
         if (error) throw error;
         
         cachePessoas = data;
