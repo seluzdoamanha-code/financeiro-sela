@@ -59,9 +59,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const ano = document.getElementById('filtroAno').value;
         document.getElementById('inCompetencia').value = `${mes}/${ano}`;
         
+        document.getElementById('inPessoaSelect').value = '';
+        
         document.getElementById('modalTransacao').style.display = 'flex';
         
         carregarCategoriasDinamicas();
+        carregarPessoasModal();
     });
     
     // Atualizar categorias quando trocar Receita/Despesa
@@ -79,7 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const { data } = await db.from('configuracoes').select('valor').eq('chave', chaveBusca).single();
             selCategoria.innerHTML = '<option value="">Selecione...</option>';
             if (data && data.valor) {
-                const linhas = data.valor.split('\\n');
+                // Separa por quebra de linha real
+                const linhas = data.valor.split(/\r?\n/);
                 linhas.forEach(cat => {
                     if (cat.trim()) {
                         const opt = document.createElement('option');
@@ -105,13 +109,26 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const id = document.getElementById('inId').value;
             
+            const selectPessoa = document.getElementById('inPessoaSelect');
+            const inNomeLivre = document.getElementById('inNomeLivre').value;
+            
+            let cpfFim = null;
+            let nomeFim = inNomeLivre || null;
+            
+            if (selectPessoa.value) {
+                cpfFim = selectPessoa.value;
+                // Pega o texto da option selecionada
+                nomeFim = selectPessoa.options[selectPessoa.selectedIndex].text;
+            }
+            
             const transacao = {
+                cpf: cpfFim,
                 tipo: document.getElementById('inTipo').value,
                 data_pagamento: document.getElementById('inDataPagamento').value,
                 valor: parseFloat(document.getElementById('inValor').value),
                 competencia: document.getElementById('inCompetencia').value,
                 descricao: document.getElementById('inDescricao').value,
-                nome_livre: document.getElementById('inNomeLivre').value || null,
+                nome_livre: nomeFim,
                 categoria: document.getElementById('inCategoria').value || null,
                 status: document.getElementById('inStatus').value
             };
@@ -241,8 +258,14 @@ window.editarTransacao = async function(id) {
         document.getElementById('inValor').value = data.valor;
         document.getElementById('inCompetencia').value = data.competencia;
         document.getElementById('inDescricao').value = data.descricao;
-        document.getElementById('inNomeLivre').value = data.nome_livre || '';
         document.getElementById('inStatus').value = data.status;
+        
+        document.getElementById('inPessoaSelect').value = data.cpf || '';
+        if (data.cpf) {
+            document.getElementById('inNomeLivre').value = '';
+        } else {
+            document.getElementById('inNomeLivre').value = data.nome_livre || '';
+        }
         
         document.getElementById('tituloModalTransacao').innerText = 'Editar Lançamento';
         
@@ -254,7 +277,7 @@ window.editarTransacao = async function(id) {
         const { data: cfg } = await db.from('configuracoes').select('valor').eq('chave', chaveBusca).single();
         selCategoria.innerHTML = '<option value="">Selecione...</option>';
         if (cfg && cfg.valor) {
-            cfg.valor.split('\\n').forEach(cat => {
+            cfg.valor.split(/\r?\n/).forEach(cat => {
                 if (cat.trim()) {
                     const opt = document.createElement('option');
                     opt.value = cat.trim();
@@ -283,3 +306,56 @@ window.excluirTransacao = async function(id) {
         alert("Erro ao excluir: " + err.message);
     }
 };
+
+// Variável global para cache de pessoas
+let cachePessoas = null;
+
+async function carregarPessoasModal() {
+    const selPessoa = document.getElementById('inPessoaSelect');
+    
+    // Se já temos cache, não precisa buscar de novo (só reseta a seleção que é feita no click)
+    if (cachePessoas) {
+        popularSelectPessoas(selPessoa, cachePessoas);
+        return;
+    }
+    
+    selPessoa.innerHTML = '<option value="">Carregando...</option>';
+    try {
+        const { data, error } = await db.from('pessoas').select('cpf, nome_completo, tags').order('nome_completo', { ascending: true });
+        if (error) throw error;
+        
+        cachePessoas = data;
+        popularSelectPessoas(selPessoa, cachePessoas);
+    } catch (err) {
+        selPessoa.innerHTML = '<option value="">Erro ao buscar pessoas</option>';
+    }
+}
+
+function popularSelectPessoas(selectEl, listaPessoas) {
+    const valorAtual = selectEl.value; // Preserva o que estava lá (útil no editar)
+    
+    selectEl.innerHTML = '<option value="">-- Selecionar Pessoa (Opcional) --</option>';
+    
+    const optAssociados = document.createElement('optgroup');
+    optAssociados.label = 'Associados Efetivos';
+    
+    const optOutros = document.createElement('optgroup');
+    optOutros.label = 'Outros';
+    
+    listaPessoas.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.cpf;
+        opt.innerText = p.nome_completo;
+        
+        if (p.tags && p.tags.includes('Associado Efetivo')) {
+            optAssociados.appendChild(opt);
+        } else {
+            optOutros.appendChild(opt);
+        }
+    });
+    
+    selectEl.appendChild(optAssociados);
+    selectEl.appendChild(optOutros);
+    
+    if (valorAtual) selectEl.value = valorAtual;
+}

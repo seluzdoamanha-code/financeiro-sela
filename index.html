@@ -549,9 +549,12 @@ Muito obrigado pelas suas contribuições ao longo deste ano! Segue o seu extrat
                     <input type="text" id="inDescricao" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
                 </div>
 
-                <div>
-                    <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px;">Pessoa / Nome Livre (Opcional)</label>
-                    <input type="text" id="inNomeLivre" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <label style="color: var(--text-muted); font-size: 13px;">Associado/Colaborador (Opcional)</label>
+                    <select id="inPessoaSelect" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+                        <option value="">-- Selecionar Pessoa (Opcional) --</option>
+                    </select>
+                    <input type="text" id="inNomeLivre" placeholder="Ou digite Nome Livre/Anônimo" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
                 </div>
                 
                 <div style="display: flex; gap: 16px;">
