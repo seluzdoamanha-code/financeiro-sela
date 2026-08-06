@@ -327,6 +327,7 @@ async function carregarPessoasModal() {
         cachePessoas = data;
         popularSelectPessoas(selPessoa, cachePessoas);
     } catch (err) {
+        console.error("Erro ao puxar pessoas do Supabase:", err);
         selPessoa.innerHTML = '<option value="">Erro ao buscar pessoas</option>';
     }
 }
@@ -347,7 +348,7 @@ function popularSelectPessoas(selectEl, listaPessoas) {
         opt.value = p.cpf;
         opt.innerText = p.nome_completo;
         
-        if (p.tags && p.tags.includes('Associado Efetivo')) {
+        if (p.tags && JSON.stringify(p.tags).includes('Associado Efetivo')) {
             optAssociados.appendChild(opt);
         } else {
             optOutros.appendChild(opt);
