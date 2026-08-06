@@ -27,10 +27,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    const filtroData = document.getElementById('filtroDataRelatorio');
-    if (filtroData) {
-        filtroData.addEventListener('change', carregarRelatorio);
-    }
+    const relMes = document.getElementById('relMes');
+    const relAno = document.getElementById('relAno');
+    if (relMes) relMes.addEventListener('change', carregarRelatorio);
+    if (relAno) relAno.addEventListener('change', carregarRelatorio);
     
     const btnSalvarSaldo = document.getElementById('btnSalvarSaldo');
     if (btnSalvarSaldo) {
@@ -46,44 +46,42 @@ document.addEventListener('DOMContentLoaded', () => {
 function atualizarLabelsFiltro() {
     const modo = document.querySelector('input[name="modoRelatorio"]:checked').value;
     const lblData = document.getElementById('lblFiltroData');
-    const inputData = document.getElementById('filtroDataRelatorio');
+    const relMes = document.getElementById('relMes');
     const containerSaldo = document.getElementById('containerSaldoAnterior');
     const btnImprimir = document.getElementById('btnImprimirRelatorio');
 
     if (modo === 'mensal') {
         lblData.innerText = 'Mês de Referência:';
-        inputData.placeholder = 'MM/AAAA';
-        if (inputData.value.length === 4) inputData.value = '07/' + inputData.value;
+        relMes.style.display = 'inline-block';
         containerSaldo.style.display = 'flex';
         btnImprimir.innerHTML = '🖨️ Emitir DFC Mensal';
         btnImprimir.style.background = '#a855f7';
     } else if (modo === 'anual') {
         lblData.innerText = 'Ano de Referência:';
-        inputData.placeholder = 'AAAA';
-        if (inputData.value.includes('/')) inputData.value = inputData.value.split('/')[1];
+        relMes.style.display = 'none';
         containerSaldo.style.display = 'none';
         btnImprimir.innerHTML = '🖨️ Emitir DFC Anual';
         btnImprimir.style.background = '#f97316';
     } else {
         lblData.innerText = 'Mês de Referência:';
-        inputData.placeholder = 'MM/AAAA';
-        if (inputData.value.length === 4) inputData.value = '07/' + inputData.value;
+        relMes.style.display = 'inline-block';
         containerSaldo.style.display = 'none';
         btnImprimir.innerHTML = '🖨️ Imprimir Livro Caixa';
         btnImprimir.style.background = '#3b82f6';
     }
 }
 
+function getRelatorioDataRef() {
+    const modo = document.querySelector('input[name="modoRelatorio"]:checked').value;
+    const m = document.getElementById('relMes').value;
+    const a = document.getElementById('relAno').value;
+    return modo === 'anual' ? a : `${m}/${a}`;
+}
+
 async function carregarRelatorio() {
     const modo = document.querySelector('input[name="modoRelatorio"]:checked').value;
-    const dataRef = document.getElementById('filtroDataRelatorio').value;
+    const dataRef = getRelatorioDataRef();
     
-    if (modo === 'mensal' || modo === 'auditoria') {
-        if (!/^\d{2}\/\d{4}$/.test(dataRef)) return;
-    } else {
-        if (!/^\d{4}$/.test(dataRef)) return;
-    }
-
     const tbody = document.getElementById('tabelaRelatorioBody');
     const thead = document.getElementById('tabelaRelatorioHead');
     
@@ -125,7 +123,6 @@ async function carregarRelatorio() {
 function renderExtratoLançamentos(thead, tbody, transacoes) {
     thead.innerHTML = `
         <tr>
-            <th style="padding: 12px; text-align: center; border: 1px solid #cbd5e1; width: 40px;"></th>
             <th style="padding: 12px; text-align: center; border: 1px solid #cbd5e1; width: 100px;">Data</th>
             <th style="padding: 12px; text-align: left; border: 1px solid #cbd5e1;">Origem / Referência</th>
             <th style="padding: 12px; text-align: center; border: 1px solid #cbd5e1; width: 100px;">Tipo</th>
@@ -137,15 +134,14 @@ function renderExtratoLançamentos(thead, tbody, transacoes) {
 
     tbody.innerHTML = '';
     
-    transacoes.forEach((t, i) => {
+    transacoes.forEach((t) => {
         const dataP = t.data_pagamento ? t.data_pagamento.split('-').reverse().join('/') : '-';
         const origem = t.nome_livre || '-';
-        const tipoStr = t.tipo_lancamento || 'Despesa';
+        const tipoStr = t.tipo || 'Despesa';
         let valColor = tipoStr === 'Receita' ? '#16a34a' : '#ef4444';
         
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td style="padding: 8px; text-align: center; border: 1px solid #cbd5e1;">${i + 1}</td>
             <td style="padding: 8px; text-align: center; border: 1px solid #cbd5e1;">${dataP}</td>
             <td style="padding: 8px; border: 1px solid #cbd5e1;">${origem}</td>
             <td style="padding: 8px; text-align: center; border: 1px solid #cbd5e1;">${tipoStr}</td>
@@ -160,7 +156,6 @@ function renderExtratoLançamentos(thead, tbody, transacoes) {
 function renderDFC(thead, tbody, transacoes, saldoAnterior) {
     thead.innerHTML = `
         <tr>
-            <th style="padding: 12px; text-align: center; border: 1px solid #cbd5e1; width: 40px;"></th>
             <th style="padding: 12px; text-align: left; border: 1px solid #cbd5e1;">Contas / Categoria</th>
             <th style="padding: 12px; text-align: right; border: 1px solid #cbd5e1; width: 150px;">Entradas (R$)</th>
             <th style="padding: 12px; text-align: right; border: 1px solid #cbd5e1; width: 150px;">Saídas (R$)</th>
@@ -173,7 +168,7 @@ function renderDFC(thead, tbody, transacoes, saldoAnterior) {
 
     transacoes.forEach(t => {
         const cat = t.categoria || 'Sem Categoria';
-        const tipo = t.tipo_lancamento || 'Despesa';
+        const tipo = t.tipo || 'Despesa';
         const v = parseFloat(t.valor) || 0;
         if (!agrupado[cat]) agrupado[cat] = { receitas: 0, despesas: 0 };
         
@@ -190,17 +185,14 @@ function renderDFC(thead, tbody, transacoes, saldoAnterior) {
     const catsDespesas = Object.keys(agrupado).filter(k => agrupado[k].despesas > 0).sort();
 
     tbody.innerHTML = '';
-    let rowIdx = 1;
 
     tbody.innerHTML += `
         <tr style="background: #f8fafc; font-weight: 600;">
-            <td style="padding: 8px; text-align: center; border: 1px solid #cbd5e1;">${rowIdx++}</td>
             <td style="padding: 8px; border: 1px solid #cbd5e1;">SALDO ANTERIOR</td>
             <td style="padding: 8px; text-align: right; border: 1px solid #cbd5e1;">R$ ${saldoAnterior.toFixed(2).replace('.', ',')}</td>
             <td style="padding: 8px; border: 1px solid #cbd5e1;"></td>
         </tr>
         <tr style="background: #f1f5f9; font-weight: 600;">
-            <td style="padding: 8px; text-align: center; border: 1px solid #cbd5e1;">${rowIdx++}</td>
             <td style="padding: 8px; border: 1px solid #cbd5e1;">RECEBIMENTOS (ENTRADAS)</td>
             <td style="padding: 8px; border: 1px solid #cbd5e1;"></td>
             <td style="padding: 8px; border: 1px solid #cbd5e1;"></td>
@@ -210,7 +202,6 @@ function renderDFC(thead, tbody, transacoes, saldoAnterior) {
     catsReceitas.forEach(cat => {
         tbody.innerHTML += `
             <tr>
-                <td style="padding: 8px; text-align: center; border: 1px solid #cbd5e1;">${rowIdx++}</td>
                 <td style="padding: 8px; border: 1px solid #cbd5e1; padding-left: 24px;">${cat}</td>
                 <td style="padding: 8px; text-align: right; border: 1px solid #cbd5e1; font-weight: 600;">R$ ${agrupado[cat].receitas.toFixed(2).replace('.', ',')}</td>
                 <td style="padding: 8px; border: 1px solid #cbd5e1;"></td>
@@ -220,7 +211,6 @@ function renderDFC(thead, tbody, transacoes, saldoAnterior) {
 
     tbody.innerHTML += `
         <tr style="background: #f1f5f9; font-weight: 600;">
-            <td style="padding: 8px; text-align: center; border: 1px solid #cbd5e1;">${rowIdx++}</td>
             <td style="padding: 8px; border: 1px solid #cbd5e1;">PAGAMENTOS (SAÍDAS)</td>
             <td style="padding: 8px; border: 1px solid #cbd5e1;"></td>
             <td style="padding: 8px; border: 1px solid #cbd5e1;"></td>
@@ -230,7 +220,6 @@ function renderDFC(thead, tbody, transacoes, saldoAnterior) {
     catsDespesas.forEach(cat => {
         tbody.innerHTML += `
             <tr>
-                <td style="padding: 8px; text-align: center; border: 1px solid #cbd5e1;">${rowIdx++}</td>
                 <td style="padding: 8px; border: 1px solid #cbd5e1; padding-left: 24px;">${cat}</td>
                 <td style="padding: 8px; border: 1px solid #cbd5e1;"></td>
                 <td style="padding: 8px; text-align: right; border: 1px solid #cbd5e1; font-weight: 600;">R$ ${agrupado[cat].despesas.toFixed(2).replace('.', ',')}</td>
@@ -242,13 +231,11 @@ function renderDFC(thead, tbody, transacoes, saldoAnterior) {
 
     tbody.innerHTML += `
         <tr style="background: #f8fafc; font-weight: 600;">
-            <td style="padding: 8px; text-align: center; border: 1px solid #cbd5e1;">${rowIdx++}</td>
             <td style="padding: 8px; border: 1px solid #cbd5e1;">SALDOS DO PERÍODO</td>
             <td style="padding: 8px; text-align: right; border: 1px solid #cbd5e1;">R$ ${totalEntradas.toFixed(2).replace('.', ',')}</td>
             <td style="padding: 8px; text-align: right; border: 1px solid #cbd5e1;">R$ ${totalSaidas.toFixed(2).replace('.', ',')}</td>
         </tr>
         <tr style="background: #e2e8f0; font-weight: 600; font-size: 16px;">
-            <td style="padding: 12px; text-align: center; border: 1px solid #cbd5e1;">${rowIdx++}</td>
             <td style="padding: 12px; border: 1px solid #cbd5e1;">SALDO ATUAL EM CAIXA:</td>
             <td style="padding: 12px; text-align: right; border: 1px solid #cbd5e1;" colspan="2">R$ ${saldoAtual.toFixed(2).replace('.', ',')}</td>
         </tr>
@@ -256,7 +243,7 @@ function renderDFC(thead, tbody, transacoes, saldoAnterior) {
 }
 
 async function salvarSaldoAnterior() {
-    const dataRef = document.getElementById('filtroDataRelatorio').value;
+    const dataRef = getRelatorioDataRef();
     const val = parseFloat(document.getElementById('relSaldoAnterior').value) || 0;
     
     if (!/^\d{2}\/\d{4}$/.test(dataRef)) return;
@@ -279,7 +266,7 @@ async function salvarSaldoAnterior() {
 
 function imprimirRelatorio() {
     const modo = document.querySelector('input[name="modoRelatorio"]:checked').value;
-    const dataRef = document.getElementById('filtroDataRelatorio').value;
+    const dataRef = getRelatorioDataRef();
     
     let titulo = "LIVRO CAIXA - EXTRATO DE LANÇAMENTOS";
     let sub = `MÊS DE REFERÊNCIA (AUDITORIA): ${dataRef}`;
