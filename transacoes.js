@@ -321,7 +321,7 @@ async function carregarPessoasModal() {
     
     selPessoa.innerHTML = '<option value="">Carregando...</option>';
     try {
-        const { data, error } = await db.from('pessoas').select('cpf_cnpj, nome_completo, papeis').order('nome_completo', { ascending: true });
+        const { data, error } = await db.from('pessoas').select('cpf_cnpj, nome_curto, nome_completo, papeis').order('nome_completo', { ascending: true });
         if (error) throw error;
         
         cachePessoas = data;
@@ -346,7 +346,10 @@ function popularSelectPessoas(selectEl, listaPessoas) {
     listaPessoas.forEach(p => {
         const opt = document.createElement('option');
         opt.value = p.cpf_cnpj;
-        opt.innerText = p.nome_completo;
+        
+        const nomePrincipal = p.nome_curto || p.nome_completo;
+        const docExtra = p.cpf_cnpj ? ` (${p.cpf_cnpj})` : '';
+        opt.innerText = `${nomePrincipal}${docExtra}`;
         
         if (p.papeis && JSON.stringify(p.papeis).includes('Associado Efetivo')) {
             optAssociados.appendChild(opt);
