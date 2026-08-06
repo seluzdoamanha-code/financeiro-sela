@@ -449,18 +449,39 @@
                     <button onclick="abrirModalDocumento()" id="btnNovoDocumento" class="btn btn-primary" style="background: #10b981; color: white;">+ Guardar Documento</button>
                 </div>
                 
-                <div class="table-container">
+                <div class="table-container" style="margin-bottom: 32px;">
+                    <h4 style="margin: 0 0 16px 0; color: #ef4444; display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 20px;">⚠️</span> Pendentes de Análise
+                    </h4>
                     <table style="width: 100%; border-collapse: collapse;">
-                        <thead style="border-bottom: 1px solid var(--border);">
+                        <thead style="border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.2);">
                             <tr>
-                                <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: left;">DATA E ORIGEM</th>
-                                <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: left;">REMETENTE / DESCRIÇÃO</th>
-                                <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: left;">ARQUIVO</th>
-                                <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: center;">STATUS</th>
-                                <th style="padding: 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: center;">AÇÕES</th>
+                                <th style="padding: 12px 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: left;">DATA / ORIGEM</th>
+                                <th style="padding: 12px 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: left;">DESCRIÇÃO / REMETENTE</th>
+                                <th style="padding: 12px 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: left;">ARQUIVO</th>
+                                <th style="padding: 12px 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: right;">AÇÕES</th>
                             </tr>
                         </thead>
-                        <tbody id="tabelaDocumentosBody">
+                        <tbody id="tabelaDocsPendentesBody">
+                            <!-- Injetado via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-container">
+                    <h4 style="margin: 0 0 16px 0; color: var(--text-muted); display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 20px;">🗄️</span> Arquivo Histórico (Processados)
+                    </h4>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead style="border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.2);">
+                            <tr>
+                                <th style="padding: 12px 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: left;">DATA / ORIGEM</th>
+                                <th style="padding: 12px 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: left;">DESCRIÇÃO / REMETENTE</th>
+                                <th style="padding: 12px 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: left;">ARQUIVO</th>
+                                <th style="padding: 12px 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: right;">AÇÕES</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaDocsProcessadosBody">
                             <!-- Injetado via JS -->
                         </tbody>
                     </table>

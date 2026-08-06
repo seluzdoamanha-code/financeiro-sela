@@ -44,12 +44,16 @@ async function carregarListaAssociados() {
         }
         
         pessoas.forEach(p => {
+            const docFormatado = typeof formatarDocumento === 'function' ? formatarDocumento(p.cpf_cnpj) : p.cpf_cnpj;
+            const docExibicao = docFormatado || p.email || 'Sem CPF/CNPJ';
+            
             const div = document.createElement('div');
             div.className = 'assoc-item';
+            div.setAttribute('data-cpf', p.cpf_cnpj || '');
             div.innerHTML = `
                 <div style="flex: 1;">
-                    <div style="font-weight: 500;">${p.nome_completo}</div>
-                    <div style="font-size: 11px; color: var(--text-muted);">${p.cpf_cnpj || p.email || 'Sem CPF'}</div>
+                    <div style="font-weight: 500;" class="nome-associado">${p.nome_completo}</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">${docExibicao}</div>
                 </div>
             `;
             
@@ -57,6 +61,9 @@ async function carregarListaAssociados() {
             
             lista.appendChild(div);
         });
+        
+        // Inicia verificação assíncrona de atrasos para colocar o alerta
+        sinalizarAtrasos(pessoas);
         
     } catch (err) {
         console.error("Erro ao buscar pessoas:", err);
@@ -140,6 +147,68 @@ document.getElementById('btnSalvarConfigMensalidade').addEventListener('click', 
         btn.disabled = false;
     }
 });
+
+async function sinalizarAtrasos(pessoas) {
+    if (!pessoas || pessoas.length === 0) return;
+    
+    const ano = document.getElementById('filtroAnoMensalidade').value || new Date().getFullYear().toString();
+    const cpfs = pessoas.map(p => p.cpf_cnpj).filter(Boolean);
+    
+    try {
+        // Busca configurações de mensalidade de todos
+        const { data: configs } = await db.from('fin_config_mensalidades').select('*').in('cpf_cnpj', cpfs);
+        // Busca pagamentos de mensalidade do ano de todos
+        const { data: transacoes } = await db.from('fin_transacoes')
+            .select('*')
+            .eq('categoria', 'Mensalidade')
+            .like('competencia', `%/${ano}`);
+            
+        const configsSeguros = configs || [];
+        const transacoesSeguras = transacoes || [];
+        
+        const dataAtual = new Date();
+        const mesAtual = dataAtual.getMonth(); // 0-11
+        
+        pessoas.forEach(p => {
+            if (!p.cpf_cnpj) return;
+            
+            const cfg = configsSeguros.find(c => c.cpf_cnpj === p.cpf_cnpj);
+            if (!cfg) return; // Sem config, assumimos que não tem atraso (pois não tem mensalidade gerada)
+            
+            const cfgDia = parseInt(cfg.dia_vencimento) || 10;
+            const pagamentos = transacoesSeguras.filter(t => t.cpf === p.cpf_cnpj);
+            
+            let emAtraso = false;
+            
+            // Verifica os meses de janeiro até o mês atual
+            for (let i = 0; i <= mesAtual; i++) {
+                const numMes = (i + 1).toString().padStart(2, '0');
+                const comp = `${numMes}/${ano}`;
+                
+                const pgto = pagamentos.find(t => t.competencia === comp);
+                const dataVencimento = new Date(ano, i, cfgDia);
+                
+                // Zera as horas para comparar apenas os dias corretamente
+                dataVencimento.setHours(23, 59, 59, 999);
+                
+                if (!pgto && dataAtual > dataVencimento) {
+                    emAtraso = true;
+                    break;
+                }
+            }
+            
+            if (emAtraso) {
+                const div = document.querySelector(`.assoc-item[data-cpf="${p.cpf_cnpj}"] .nome-associado`);
+                if (div) {
+                    div.innerHTML = `<span style="color: #ef4444;" title="Mensalidade em Atraso">❗️</span> ${p.nome_completo}`;
+                }
+            }
+        });
+        
+    } catch (e) {
+        console.error("Erro ao verificar atrasos:", e);
+    }
+}
 
 async function gerarTabelaMensalidadesReal(pessoa) {
     const tbody = document.getElementById('tabelaMensalidadesAssociado');

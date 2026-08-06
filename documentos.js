@@ -37,10 +37,12 @@ window.abrirModalDocumento = function() {
 };
 
 async function carregarDocumentos() {
-    const tbody = document.getElementById('tabelaDocumentosBody');
-    if (!tbody) return;
+    const tbodyPendentes = document.getElementById('tabelaDocsPendentesBody');
+    const tbodyProcessados = document.getElementById('tabelaDocsProcessadosBody');
+    if (!tbodyPendentes || !tbodyProcessados) return;
 
-    tbody.innerHTML = '<tr><td colspan="5" style="padding: 24px; text-align: center; color: var(--text-muted);">Buscando documentos...</td></tr>';
+    tbodyPendentes.innerHTML = '<tr><td colspan="4" style="padding: 24px; text-align: center; color: var(--text-muted);">Buscando documentos pendentes...</td></tr>';
+    tbodyProcessados.innerHTML = '<tr><td colspan="4" style="padding: 24px; text-align: center; color: var(--text-muted);">Buscando histórico...</td></tr>';
 
     const ano = document.getElementById('filtroAnoDoc').value;
     const origem = document.getElementById('filtroOrigemDoc').value;
@@ -53,7 +55,6 @@ async function carregarDocumentos() {
             query = query.or(`ano_referencia.eq.${parseInt(ano)},ano_referencia.is.null`);
         }
         if (origem) {
-            // Se for Portal, no passado salvávamos sem origem. Então tratamos null como Portal também.
             if (origem === 'Portal') {
                 query = query.or('origem.eq.Portal,origem.is.null');
             } else {
@@ -67,52 +68,66 @@ async function carregarDocumentos() {
         const { data, error } = await query;
         if (error) throw error;
 
-        tbody.innerHTML = '';
+        tbodyPendentes.innerHTML = '';
+        tbodyProcessados.innerHTML = '';
 
-        if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="padding: 24px; text-align: center; color: var(--text-muted);">Nenhum documento encontrado com os filtros selecionados.</td></tr>';
-            return;
+        let countPendentes = 0;
+        let countProcessados = 0;
+
+        if (data) {
+            data.forEach(doc => {
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+                
+                const dataEnvio = new Date(doc.created_at).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+                const origemReal = doc.origem || 'Portal'; 
+                const origemBadge = getOrigemBadge(origemReal);
+                
+                let arquivoLink = '-';
+                if (doc.arquivo_url) {
+                    arquivoLink = `<a href="${doc.arquivo_url}" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 500;">📎 Ver Arquivo</a>`;
+                }
+
+                let acoes = '';
+                if (doc.status === 'pendente') {
+                    acoes = `<button onclick="marcarDocProcessado('${doc.id}')" style="background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500;">✓ Arquivar</button>`;
+                } else {
+                    acoes = `<span style="color: var(--text-muted); font-size: 12px;">Arquivado</span>`;
+                }
+
+                tr.innerHTML = `
+                    <td style="padding: 12px 16px; font-size: 14px;">
+                        <div>${dataEnvio}</div>
+                        <div style="margin-top: 4px;">${origemBadge}</div>
+                    </td>
+                    <td style="padding: 12px 16px; font-size: 14px;">
+                        <div style="font-weight: 500; color: white;">${doc.descricao || '-'}</div>
+                        <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Enviado por: ${doc.remetente_nome || '-'}</div>
+                    </td>
+                    <td style="padding: 12px 16px; font-size: 14px;">${arquivoLink}</td>
+                    <td style="padding: 12px 16px; font-size: 14px; text-align: right;">${acoes}</td>
+                `;
+                
+                if (doc.status === 'pendente') {
+                    tbodyPendentes.appendChild(tr);
+                    countPendentes++;
+                } else {
+                    tbodyProcessados.appendChild(tr);
+                    countProcessados++;
+                }
+            });
         }
 
-        data.forEach(doc => {
-            const tr = document.createElement('tr');
-            tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
-            
-            const dataEnvio = new Date(doc.created_at).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
-            const origemReal = doc.origem || 'Portal'; // Legado vem null
-            const origemBadge = getOrigemBadge(origemReal);
-            const statusBadge = getStatusBadge(doc.status);
-            
-            let arquivoLink = '-';
-            if (doc.arquivo_url) {
-                arquivoLink = `<a href="${doc.arquivo_url}" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 500;">📎 Ver Arquivo</a>`;
-            }
-
-            let acoes = '';
-            if (doc.status === 'pendente') {
-                acoes = `<button onclick="marcarDocProcessado('${doc.id}')" style="background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500;">✓ Arquivar</button>`;
-            } else {
-                acoes = `<span style="color: var(--text-muted); font-size: 12px;">Já Arquivado</span>`;
-            }
-
-            tr.innerHTML = `
-                <td style="padding: 16px; font-size: 14px;">
-                    <div>${dataEnvio}</div>
-                    <div style="margin-top: 4px;">${origemBadge}</div>
-                </td>
-                <td style="padding: 16px; font-size: 14px;">
-                    <div style="font-weight: 500; color: white;">${doc.descricao || '-'}</div>
-                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Enviado por: ${doc.remetente_nome || '-'}</div>
-                </td>
-                <td style="padding: 16px; font-size: 14px;">${arquivoLink}</td>
-                <td style="padding: 16px; font-size: 14px; text-align: center;">${statusBadge}</td>
-                <td style="padding: 16px; font-size: 14px; text-align: center;">${acoes}</td>
-            `;
-            tbody.appendChild(tr);
-        });
+        if (countPendentes === 0) {
+            tbodyPendentes.innerHTML = '<tr><td colspan="4" style="padding: 24px; text-align: center; color: var(--success);">Nenhum documento pendente! 🎉</td></tr>';
+        }
+        if (countProcessados === 0) {
+            tbodyProcessados.innerHTML = '<tr><td colspan="4" style="padding: 24px; text-align: center; color: var(--text-muted);">Nenhum histórico encontrado.</td></tr>';
+        }
 
     } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="5" style="padding: 24px; text-align: center; color: #ef4444;">Erro ao buscar: ${err.message}</td></tr>`;
+        tbodyPendentes.innerHTML = `<tr><td colspan="4" style="padding: 24px; text-align: center; color: #ef4444;">Erro: ${err.message}</td></tr>`;
+        tbodyProcessados.innerHTML = '';
     }
 }
 
@@ -147,13 +162,23 @@ async function salvarNovoDocumento(e) {
         } else {
             throw new Error("Selecione um arquivo para arquivar.");
         }
+        
+        let remetenteLogado = 'Financeiro SELA';
+        try {
+            const { data: sessionData } = await db.auth.getSession();
+            if (sessionData?.session?.user) {
+                remetenteLogado = sessionData.session.user.user_metadata?.full_name || sessionData.session.user.email || 'Usuário Financeiro';
+            }
+        } catch(e) {
+            console.log("Erro ao buscar sessão:", e);
+        }
 
         const { error: dbError } = await db.from('app_tesouraria_envios').insert([{
             origem: origem,
             ano_referencia: ano_referencia,
             descricao: descricao,
             arquivo_url: arquivoUrl,
-            remetente_nome: 'Financeiro SELA',
+            remetente_nome: remetenteLogado,
             status: status
         }]);
 
