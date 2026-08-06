@@ -91,9 +91,10 @@ async function carregarRelatorio() {
         let query = db.from('fin_transacoes').select('*');
         
         if (modo === 'anual') {
-            query = query.like('competencia', `%/${dataRef}`);
+            query = query.like('data_pagamento', `${dataRef}-%`);
         } else {
-            query = query.eq('competencia', dataRef);
+            const [m, a] = dataRef.split('/');
+            query = query.like('data_pagamento', `${a}-${m}-%`);
         }
         
         // Apenas transações Pagas
