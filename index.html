@@ -24,6 +24,7 @@
     <script src="transacoes.js" defer></script>
     <script src="mensalidades.js" defer></script>
     <script src="documentos.js" defer></script>
+    <script src="relatorios.js" defer></script>
     <script src="configuracoes.js" defer></script>
     
     <style>
@@ -240,6 +241,7 @@
                     <span style="font-size: 20px;">👥</span>
                     Mensalidades
                 </a>
+                <a href="#" class="nav-item" id="menuRelatorios">📈 Relatórios Contábeis</a>
                 <a href="#" class="nav-item" id="menuDocumentos">📁 Documentos</a>
                 <a href="#" class="nav-item" id="menuConciliacao">🏦 Conciliar OFX</a>
                 <a href="#" class="nav-item" id="menuConfiguracoes">
@@ -424,6 +426,57 @@
                 </div>
             </div>
             
+            <!-- VIEW: Relatórios Contábeis -->
+            <div id="viewRelatorios" class="content-body" style="display: none; padding: 32px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
+                    <div>
+                        <h2 style="font-size: 24px; font-weight: 600; margin-bottom: 16px;">Relatórios Contábeis</h2>
+                        <div style="display: flex; gap: 24px; align-items: center; color: var(--text-muted); font-size: 15px;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="radio" name="modoRelatorio" value="mensal" checked style="accent-color: #10b981; width: 18px; height: 18px;">
+                                Caixa Mensal
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="radio" name="modoRelatorio" value="anual" style="accent-color: #10b981; width: 18px; height: 18px;">
+                                Caixa Acumulado (Anual)
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="radio" name="modoRelatorio" value="auditoria" style="accent-color: #10b981; width: 18px; height: 18px;">
+                                Extrato de Lançamentos (Auditoria)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(0,0,0,0.2); padding: 16px; border-radius: 12px; border: 1px solid var(--border); display: flex; gap: 24px; align-items: center; margin-bottom: 24px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span id="lblFiltroData" style="color: var(--text-muted); font-size: 14px;">Mês de Referência:</span>
+                        <input type="text" id="filtroDataRelatorio" value="07/2026" style="padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-dark); color: white; width: 120px;">
+                    </div>
+                    
+                    <div id="containerSaldoAnterior" style="display: flex; align-items: center; gap: 12px;">
+                        <span style="color: var(--text-muted); font-size: 14px;">Saldo Anterior (R$):</span>
+                        <input type="number" id="relSaldoAnterior" step="0.01" value="0.00" style="padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-dark); color: white; width: 140px;">
+                        <button id="btnSalvarSaldo" class="btn btn-secondary" style="padding: 8px 16px;">Salvar Saldo</button>
+                    </div>
+
+                    <div style="flex: 1; text-align: right;">
+                        <button id="btnImprimirRelatorio" class="btn btn-primary" style="background: #a855f7; border: none; padding: 10px 24px; font-weight: 600;">🖨️ Emitir DFC Mensal</button>
+                    </div>
+                </div>
+
+                <div class="table-container" style="background: white; color: black; border-radius: 4px;">
+                    <table style="width: 100%; border-collapse: collapse; font-family: sans-serif;" id="tabelaRelatorioCore">
+                        <thead id="tabelaRelatorioHead" style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
+                            <!-- Injetado -->
+                        </thead>
+                        <tbody id="tabelaRelatorioBody">
+                            <!-- Injetado -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- VIEW: Documentos (Arquivo Geral) -->
             <div class="content-body" id="viewDocumentos" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
