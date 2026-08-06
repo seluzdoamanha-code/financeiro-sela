@@ -353,7 +353,8 @@ function popularSelectPessoas(selectEl, listaPessoas) {
         opt.value = p.cpf_cnpj;
         
         const nomePrincipal = p.nome_curto || p.nome_completo;
-        const docExtra = p.cpf_cnpj ? ` (${p.cpf_cnpj})` : '';
+        const docFormatado = formatarDocumento(p.cpf_cnpj);
+        const docExtra = docFormatado ? ` (${docFormatado})` : '';
         opt.innerText = `${nomePrincipal}${docExtra}`;
         
         if (p.papeis && JSON.stringify(p.papeis).includes('Associado Efetivo')) {
@@ -367,4 +368,15 @@ function popularSelectPessoas(selectEl, listaPessoas) {
     selectEl.appendChild(optOutros);
     
     if (valorAtual) selectEl.value = valorAtual;
+}
+
+function formatarDocumento(doc) {
+    if (!doc) return '';
+    const num = doc.replace(/\D/g, '');
+    if (num.length === 11) {
+        return num.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+    } else if (num.length === 14) {
+        return num.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+    }
+    return doc;
 }
