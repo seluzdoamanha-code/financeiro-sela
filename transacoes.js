@@ -223,10 +223,10 @@ async function carregarDashboard() {
         
         const saldoAtual = saldoAnt + entradas - saidas;
         
-        document.getElementById('dashSaldoAnterior').innerText = `R$ ${saldoAnt.toFixed(2).replace('.', ',')}`;
-        document.getElementById('dashEntradas').innerText = `+ R$ ${entradas.toFixed(2).replace('.', ',')}`;
-        document.getElementById('dashSaidas').innerText = `- R$ ${saidas.toFixed(2).replace('.', ',')}`;
-        document.getElementById('dashSaldoAtual').innerText = `R$ ${saldoAtual.toFixed(2).replace('.', ',')}`;
+        document.getElementById('dashSaldoAnterior').innerText = `R$ ${saldoAnt.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        document.getElementById('dashEntradas').innerText = `+ R$ ${entradas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        document.getElementById('dashSaidas').innerText = `- R$ ${saidas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        document.getElementById('dashSaldoAtual').innerText = `R$ ${saldoAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         
     } catch(e) {
         console.error("Erro no dashboard:", e);

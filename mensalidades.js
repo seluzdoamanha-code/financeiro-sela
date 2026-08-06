@@ -253,12 +253,12 @@ async function gerarTabelaMensalidadesReal(pessoa) {
         let statusStr = '<span style="color: var(--text-muted);">A Vencer</span>';
         let btnAcao = `<button class="btn btn-primary" onclick="darBaixaMensalidade('${pessoa.cpf_cnpj}', '${pessoa.nome_completo}', '${comp}', ${cfgValor})" style="padding: 4px 12px; font-size: 12px; background: #10b981;">💵 Dar Baixa</button>`;
         let dataPagtoStr = '-';
-        let valorExibido = cfgValor > 0 ? `R$ ${cfgValor.toFixed(2).replace('.',',')}` : '-';
+        let valorExibido = cfgValor > 0 ? `R$ ${cfgValor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-';
         
         if (pgto) {
             statusStr = '<span style="color: #10b981; font-weight: 600;">Pago</span>';
             btnAcao = `<span style="color: var(--text-muted); font-size: 12px;">✅ Recebido</span>`;
-            valorExibido = `R$ ${parseFloat(pgto.valor).toFixed(2).replace('.',',')}`;
+            valorExibido = `R$ ${parseFloat(pgto.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             if (pgto.data_pagamento) {
                 const pDate = pgto.data_pagamento.split('-');
                 dataPagtoStr = `${pDate[2]}/${pDate[1]}/${pDate[0]}`;
@@ -450,7 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <tr>
                             <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${dataP}</td>
                             <td style="padding: 8px; border: 1px solid #cbd5e1;">${t.descricao || 'Mensalidade'}</td>
-                            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right;">R$ ${v.toFixed(2).replace('.', ',')}</td>
+                            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right;">R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                         </tr>
                     `;
                 });
@@ -471,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <tfoot>
                         <tr>
                             <td colspan="2" style="padding: 12px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold; background: #f8fafc;">TOTAL:</td>
-                            <td style="padding: 12px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold; background: #f8fafc;">R$ ${total.toFixed(2).replace('.', ',')}</td>
+                            <td style="padding: 12px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold; background: #f8fafc;">R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                         </tr>
                     </tfoot>
                 </table>

@@ -150,7 +150,7 @@ function renderExtratoLançamentos(thead, tbody, transacoes) {
             <td style="padding: 8px; text-align: center; border: 1px solid #cbd5e1;">${tipoStr}</td>
             <td style="padding: 8px; border: 1px solid #cbd5e1;">${t.categoria || '-'}</td>
             <td style="padding: 8px; border: 1px solid #cbd5e1;">${t.descricao || '-'}</td>
-            <td style="padding: 8px; text-align: right; border: 1px solid #cbd5e1; color: ${valColor};">R$ ${parseFloat(t.valor).toFixed(2).replace('.', ',')}</td>
+            <td style="padding: 8px; text-align: right; border: 1px solid #cbd5e1; color: ${valColor};">R$ ${parseFloat(t.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
         `;
         tbody.appendChild(tr);
     });
@@ -192,7 +192,7 @@ function renderDFC(thead, tbody, transacoes, saldoAnterior) {
     tbody.innerHTML += `
         <tr style="background: #f8fafc; font-weight: 600;">
             <td style="padding: 8px; border: 1px solid #cbd5e1;">SALDO ANTERIOR</td>
-            <td style="padding: 8px; text-align: right; border: 1px solid #cbd5e1;">R$ ${saldoAnterior.toFixed(2).replace('.', ',')}</td>
+            <td style="padding: 8px; text-align: right; border: 1px solid #cbd5e1;">R$ ${saldoAnterior.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
             <td style="padding: 8px; border: 1px solid #cbd5e1;"></td>
         </tr>
         <tr style="background: #f1f5f9; font-weight: 600;">
@@ -206,7 +206,7 @@ function renderDFC(thead, tbody, transacoes, saldoAnterior) {
         tbody.innerHTML += `
             <tr>
                 <td style="padding: 8px; border: 1px solid #cbd5e1; padding-left: 24px;">${cat}</td>
-                <td style="padding: 8px; text-align: right; border: 1px solid #cbd5e1; font-weight: 600;">R$ ${agrupado[cat].receitas.toFixed(2).replace('.', ',')}</td>
+                <td style="padding: 8px; text-align: right; border: 1px solid #cbd5e1; font-weight: 600;">R$ ${agrupado[cat].receitas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                 <td style="padding: 8px; border: 1px solid #cbd5e1;"></td>
             </tr>
         `;
@@ -225,7 +225,7 @@ function renderDFC(thead, tbody, transacoes, saldoAnterior) {
             <tr>
                 <td style="padding: 8px; border: 1px solid #cbd5e1; padding-left: 24px;">${cat}</td>
                 <td style="padding: 8px; border: 1px solid #cbd5e1;"></td>
-                <td style="padding: 8px; text-align: right; border: 1px solid #cbd5e1; font-weight: 600;">R$ ${agrupado[cat].despesas.toFixed(2).replace('.', ',')}</td>
+                <td style="padding: 8px; text-align: right; border: 1px solid #cbd5e1; font-weight: 600;">R$ ${agrupado[cat].despesas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
             </tr>
         `;
     });
@@ -235,12 +235,12 @@ function renderDFC(thead, tbody, transacoes, saldoAnterior) {
     tbody.innerHTML += `
         <tr style="background: #f8fafc; font-weight: 600;">
             <td style="padding: 8px; border: 1px solid #cbd5e1;">SALDOS DO PERÍODO</td>
-            <td style="padding: 8px; text-align: right; border: 1px solid #cbd5e1;">R$ ${totalEntradas.toFixed(2).replace('.', ',')}</td>
-            <td style="padding: 8px; text-align: right; border: 1px solid #cbd5e1;">R$ ${totalSaidas.toFixed(2).replace('.', ',')}</td>
+            <td style="padding: 8px; text-align: right; border: 1px solid #cbd5e1;">R$ ${totalEntradas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            <td style="padding: 8px; text-align: right; border: 1px solid #cbd5e1;">R$ ${totalSaidas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
         </tr>
-        <tr style="background: #e2e8f0; font-weight: 600; font-size: 16px;">
-            <td style="padding: 12px; border: 1px solid #cbd5e1;">SALDO ATUAL EM CAIXA:</td>
-            <td style="padding: 12px; text-align: right; border: 1px solid #cbd5e1;" colspan="2">R$ ${saldoAtual.toFixed(2).replace('.', ',')}</td>
+        <tr style="background: ${saldoAtual >= 0 ? '#dcfce7' : '#fee2e2'}; font-weight: bold; font-size: 16px;">
+            <td style="padding: 12px; text-align: right; border: 1px solid #cbd5e1;">Saldo Final DFC:</td>
+            <td style="padding: 12px; text-align: right; border: 1px solid #cbd5e1;" colspan="2">R$ ${saldoAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
         </tr>
     `;
 }

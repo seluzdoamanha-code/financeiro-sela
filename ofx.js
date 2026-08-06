@@ -115,7 +115,7 @@ async function renderizarTabelaOfx() {
         const dataStr = `${partes[2]}/${partes[1]}/${partes[0]}`;
         
         const corValor = t.valor >= 0 ? 'var(--success)' : '#ef4444';
-        const valorFormatado = Math.abs(t.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        const valorFormatado = Math.abs(t.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const sinal = t.valor >= 0 ? '+' : '-';
         const tipo = t.valor >= 0 ? 'Receita' : 'Despesa';
         
@@ -144,7 +144,7 @@ async function renderizarTabelaOfx() {
                 <div style="font-size: 11px; color: var(--text-muted); font-family: monospace;">FITID: ${t.fitid}</div>
             </td>
             <td style="padding: 16px; font-size: 14px; font-weight: 600; color: ${corValor};">
-                ${sinal} ${valorFormatado}
+                ${sinal} R$ ${valorFormatado}
             </td>
             <td style="padding: 16px; font-size: 13px;">
                 <div style="display: flex; gap: 8px; margin-bottom: 8px;">
