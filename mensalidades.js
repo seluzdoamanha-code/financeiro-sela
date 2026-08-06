@@ -199,6 +199,10 @@ async function gerarTabelaMensalidadesReal(pessoa) {
         
         const tr = document.createElement('tr');
         tr.style.borderBottom = '1px solid var(--border)';
+        // Adicionamos classe 'linha-atrasada' se estiver atrasado para contarmos depois
+        if (estaAtrasado) tr.classList.add('linha-atrasada');
+        tr.setAttribute('data-mes', `${numMes}/${ano}`);
+        
         tr.innerHTML = `
             <td style="padding: 12px 16px; font-size: 14px;">${nomeMes}/${ano}</td>
             <td style="padding: 12px 16px; font-size: 14px;">${valorExibido}</td>
@@ -268,6 +272,60 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.innerText = originalText;
                 btn.disabled = false;
             }
+        });
+    }
+});
+
+// Cobrar Atrasos (WhatsApp)
+document.addEventListener('DOMContentLoaded', () => {
+    const btnCobrar = document.getElementById('btnCobrarAtrasos');
+    if (btnCobrar) {
+        btnCobrar.addEventListener('click', async () => {
+            if (!associadoAtivo) return;
+            
+            // Descobrir quais meses estão atrasados na tabela
+            const atrasos = [];
+            document.querySelectorAll('#tabelaMensalidadesAssociado tr.linha-atrasada').forEach(tr => {
+                atrasos.push(tr.getAttribute('data-mes'));
+            });
+            
+            if (atrasos.length === 0) {
+                alert("Este associado não possui mensalidades atrasadas neste ano.");
+                return;
+            }
+            
+            let celular = associadoAtivo.celular;
+            if (!celular) {
+                const num = prompt(`O cadastro de ${associadoAtivo.nome_completo} não possui celular. Digite o número com DDD para continuar:`);
+                if (!num) return;
+                celular = num;
+            }
+            
+            // Puxa template do banco
+            let template = "Olá, {nome}, tudo bem?\\nEste é um lembrete amigável sobre a sua mensalidade de R$ {valor} com vencimento dia {dia}, do(s) mês(es) {meses}.";
+            try {
+                const { data } = await db.from('configuracoes').select('valor').eq('chave', 'msg_cobranca_mensalidade').single();
+                if (data && data.valor) template = data.valor;
+            } catch (e) {
+                console.log("Usando template padrão.");
+            }
+            
+            const valor = document.getElementById('cfgValorMensalidade').value;
+            const dia = document.getElementById('cfgDiaVencimento').value;
+            
+            // Substituições
+            let msg = template
+                .replace(/{nome}/g, associadoAtivo.nome_completo)
+                .replace(/{valor}/g, parseFloat(valor).toFixed(2).replace('.', ','))
+                .replace(/{dia}/g, dia)
+                .replace(/{meses}/g, atrasos.join(', '));
+                
+            // Limpa o celular
+            let celLimpo = celular.replace(/\\D/g, '');
+            if (celLimpo.length <= 11) celLimpo = '55' + celLimpo;
+            
+            const url = `https://wa.me/${celLimpo}?text=${encodeURIComponent(msg)}`;
+            window.open(url, '_blank');
         });
     }
 });

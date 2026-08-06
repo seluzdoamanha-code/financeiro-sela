@@ -23,6 +23,7 @@
     <script src="auth.js" defer></script>
     <script src="transacoes.js" defer></script>
     <script src="mensalidades.js" defer></script>
+    <script src="configuracoes.js" defer></script>
     
     <style>
         /* Ajustes Finanças */
@@ -234,9 +235,15 @@
             <nav class="main-nav" style="margin-top: 16px;">
                 <a href="#" class="nav-item active" id="menuDashboard">📊 Painel Geral</a>
                 <a href="#" class="nav-item" id="menuLivroCaixa">📓 Livro Caixa</a>
-                <a href="#" class="nav-item" id="menuMensalidades">👥 Mensalidades</a>
+                <a href="#" class="nav-item" id="menuMensalidades">
+                    <span style="font-size: 20px;">👥</span>
+                    Mensalidades
+                </a>
                 <a href="#" class="nav-item" id="menuConciliacao">🏦 Conciliar OFX</a>
-                <a href="#" class="nav-item" id="menuRelatorios">📄 Relatórios</a>
+                <a href="#" class="nav-item" id="menuConfiguracoes">
+                    <span style="font-size: 20px;">⚙️</span>
+                    Configurações
+                </a>
             </nav>
             
             <div class="user-profile">
@@ -398,6 +405,84 @@
                         </div>
                     </div>
                     
+                </div>
+            </div>
+            
+            <!-- VIEW: Configurações -->
+            <div class="content-body" id="viewConfiguracoes" style="display: none; height: 100%;">
+                <div style="display: flex; gap: 24px; height: 100%;">
+                    
+                    <!-- Menu Lateral de Configs -->
+                    <div style="width: 250px; background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; flex-shrink: 0;">
+                        <div style="padding: 16px; border-bottom: 1px solid var(--border); font-weight: 600;">
+                            Categorias
+                        </div>
+                        <nav style="display: flex; flex-direction: column; padding: 8px;">
+                            <a href="#" class="config-tab active" data-target="tabWhatsapp" style="padding: 12px; border-radius: 8px; color: var(--text-main); text-decoration: none; display: flex; align-items: center; gap: 8px; transition: 0.2s;">
+                                💬 WhatsApp
+                            </a>
+                            <a href="#" class="config-tab" data-target="tabAparencia" style="padding: 12px; border-radius: 8px; color: var(--text-main); text-decoration: none; display: flex; align-items: center; gap: 8px; transition: 0.2s;">
+                                🎨 Aparência
+                            </a>
+                        </nav>
+                        
+                        <style>
+                            .config-tab.active { background: rgba(79, 70, 229, 0.15); color: var(--primary); font-weight: 500; }
+                            .config-tab:hover:not(.active) { background: rgba(255,255,255,0.05); }
+                        </style>
+                    </div>
+
+                    <!-- Conteúdo da Config -->
+                    <div style="flex: 1; background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; overflow-y: auto;">
+                        <div style="padding: 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--bg-panel); z-index: 10;">
+                            <h2 style="margin: 0; font-size: 20px;">Configurações do Sistema</h2>
+                            <button class="btn btn-primary" id="btnSalvarConfigGeral" style="padding: 8px 16px; background: #10b981;">Salvar Alterações</button>
+                        </div>
+                        
+                        <div style="padding: 24px;">
+                            <!-- Aba WhatsApp -->
+                            <div id="tabWhatsapp" class="config-content" style="display: block;">
+                                <h3 style="margin-top: 0; margin-bottom: 8px;">Templates de Mensagens</h3>
+                                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Utilize as variáveis <b>{nome}</b>, <b>{valor}</b>, <b>{meses}</b> e <b>{dia}</b> para personalizar as mensagens automáticas.</p>
+                                
+                                <div style="margin-bottom: 24px;">
+                                    <label style="display:block; margin-bottom: 8px; font-weight: 500;">Lembrete de Mensalidade (Cobrança)</label>
+                                    <textarea id="cfgMsgLembrete" rows="5" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-dark); color: white; font-family: inherit; font-size: 14px; resize: vertical;">Olá, {nome}, tudo bem?
+Aqui é da Luz do Amanhã. Este é um lembrete amigável sobre a sua mensalidade de R$ {valor} com vencimento dia {dia}, do(s) mês(es) {meses}.
+
+Agradecemos sua colaboração!</textarea>
+                                </div>
+
+                                <div style="margin-bottom: 24px;">
+                                    <label style="display:block; margin-bottom: 8px; font-weight: 500;">Comunicado Financeiro (Geral)</label>
+                                    <textarea id="cfgMsgComunicado" rows="4" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-dark); color: white; font-family: inherit; font-size: 14px; resize: vertical;">Olá, {nome}, tudo bem?
+Gostaríamos de informar que...</textarea>
+                                </div>
+
+                                <div>
+                                    <label style="display:block; margin-bottom: 8px; font-weight: 500;">Agradecimento Anual (Envio de Extrato)</label>
+                                    <textarea id="cfgMsgAgradecimento" rows="4" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-dark); color: white; font-family: inherit; font-size: 14px; resize: vertical;">Olá, {nome}, tudo bem?
+Muito obrigado pelas suas contribuições ao longo deste ano! Segue o seu extrato.</textarea>
+                                </div>
+                            </div>
+                            
+                            <!-- Aba Aparência -->
+                            <div id="tabAparencia" class="config-content" style="display: none;">
+                                <h3 style="margin-top: 0; margin-bottom: 8px;">Cores e Tema SELA</h3>
+                                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Estas configurações são sincronizadas com o Portal central.</p>
+                                
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                                    <div>
+                                        <label style="display:block; margin-bottom: 8px; font-weight: 500;">Cor Principal (Primary)</label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="color" id="cfgCorPrimaria" value="#4f46e5" style="width: 40px; height: 40px; padding: 0; border: none; border-radius: 6px; cursor: pointer;">
+                                            <input type="text" id="cfgCorPrimariaHex" value="#4f46e5" style="flex: 1; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-dark); color: white;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
