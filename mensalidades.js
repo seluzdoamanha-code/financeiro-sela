@@ -567,17 +567,17 @@ document.querySelectorAll('.btn-pix').forEach(btn => {
         
         const valor = btn.getAttribute('data-valor');
         
-        const payloads = {
-            '10': '00020126360014br.gov.bcb.pix011407031176000174520400005303986540510.005802BR5925Sociedade Espirita Luz do6007ITAPEMA62070503***63045DC7',
-            '20': '00020126360014br.gov.bcb.pix011407031176000174520400005303986540520.005802BR5925Sociedade Espirita Luz do6007ITAPEMA62070503***63048866',
-            '25': '00020126360014br.gov.bcb.pix011407031176000174520400005303986540525.005802BR5925Sociedade Espirita Luz do6007ITAPEMA62070503***63040238',
-            '30': '00020126360014br.gov.bcb.pix011407031176000174520400005303986540530.005802BR5925Sociedade Espirita Luz do6007ITAPEMA62070503***6304C4F9',
-            '50': '00020126360014br.gov.bcb.pix011407031176000174520400005303986540550.005802BR5925Sociedade Espirita Luz do6007ITAPEMA62070503***63047F9A',
-            '100': '00020126360014br.gov.bcb.pix0114070311760001745204000053039865406100.005802BR5925Sociedade Espirita Luz do6007ITAPEMA62070503***6304B56D',
-            '250': '00020126360014br.gov.bcb.pix0114070311760001745204000053039865406250.005802BR5925Sociedade Espirita Luz do6007ITAPEMA62070503***6304E177'
+        const payloadsPix = {
+            '10': '00020101021126640014br.gov.bcb.pix0114070321760001740224mensalidade associado 10520400005303986540510.005802BR5925Sociedade Espirita Luz Do6008BRASILIA62170513mensalidade10630400B4',
+            '20': '00020101021126640014br.gov.bcb.pix0114070321760001740224mensalidade associado 20520400005303986540520.005802BR5925Sociedade Espirita Luz Do6008BRASILIA62170513mensalidade20630485FD',
+            '25': '00020101021126640014br.gov.bcb.pix0114070321760001740224mensalidade associado 25520400005303986540525.005802BR5925Sociedade Espirita Luz Do6008BRASILIA62170513mensalidade25630434D5',
+            '30': '00020101021126640014br.gov.bcb.pix0114070321760001740224mensalidade associado 30520400005303986540530.005802BR5925Sociedade Espirita Luz Do6008BRASILIA62170513mensalidade3063040925',
+            '50': '00020101021126640014br.gov.bcb.pix0114070321760001740224mensalidade associado 50520400005303986540550.005802BR5925Sociedade Espirita Luz Do6008BRASILIA62170513mensalidade5063041396',
+            '100': '00020101021126650014br.gov.bcb.pix0114070321760001740225mensalidade associado 1005204000053039865406100.005802BR5925Sociedade Espirita Luz Do6008BRASILIA62180514mensalidade100630450B9',
+            '250': '00020101021126650014br.gov.bcb.pix0114070321760001740225mensalidade associado 2505204000053039865406250.005802BR5925Sociedade Espirita Luz Do6008BRASILIA62180514mensalidade25063045CA1'
         };
         
-        const codigo = payloads[valor];
+        const codigo = payloadsPix[valor];
         const nomeCurto = associadoAtivo.nome_completo.split(' ')[0];
         
         const msg = `Olá, ${nomeCurto}!\nSegue a chave Pix "Copia e Cola" no valor de R$ ${valor},00 para a sua mensalidade:\n\n${codigo}\n\n*A Sociedade Espírita Luz do Amanhã agradece!*`;
