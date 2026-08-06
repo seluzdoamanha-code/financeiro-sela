@@ -69,6 +69,13 @@ async function processarOFX(conteudo) {
         }
     }
     
+    // Deduplicar transações idênticas que venham no mesmo arquivo (alguns bancos enviam duplicado)
+    const fitidsVistos = new Set();
+    transacoesOfx = transacoesOfx.filter(t => {
+        if (fitidsVistos.has(t.fitid)) return false;
+        fitidsVistos.add(t.fitid);
+        return true;
+    });
     
     await renderizarTabelaOfx();
 }
