@@ -90,13 +90,21 @@ async function renderizarTabelaOfx() {
         return;
     }
     
-    // Fetch unique config (rules + categories)
+    // Fetch unique config (rules + categories) and Pessoas
     let cats = [];
     let regras = [];
     let recArr = [];
     let despArr = [];
+    let pessoasAtivas = [];
     try {
-        const { data } = await db.from('configuracoes').select('*');
+        const [resCfg, resPessoas] = await Promise.all([
+            db.from('configuracoes').select('*'),
+            db.from('pessoas').select('cpf_cnpj, nome_completo').contains('papeis', ['Associado Efetivo'])
+        ]);
+        
+        if (resPessoas.data) pessoasAtivas = resPessoas.data;
+        
+        const data = resCfg.data;
         if (data) {
             let rec = "";
             let desp = "";
@@ -160,6 +168,25 @@ async function renderizarTabelaOfx() {
         
         // Competência default é o mês/ano da data
         const comp = `${partes[1]}/${partes[0]}`;
+        
+        // --- INÍCIO: Lógica importada do AdminLuz (Extrator de CPF/CNPJ) ---
+        const docMatch = t.descricao.match(/\b(\d{11}|\d{14})\b/);
+        let cpfExtraido = null;
+        let associadoEncontrado = null;
+        
+        if (docMatch) {
+            let doc = docMatch[1];
+            if (doc.length === 11) {
+                cpfExtraido = `${doc.substring(0,3)}.${doc.substring(3,6)}.${doc.substring(6,9)}-${doc.substring(9)}`;
+            } else if (doc.length === 14) {
+                cpfExtraido = `${doc.substring(0,2)}.${doc.substring(2,5)}.${doc.substring(5,8)}/${doc.substring(8,12)}-${doc.substring(12)}`;
+            }
+            associadoEncontrado = pessoasAtivas.find(p => p.cpf_cnpj === cpfExtraido);
+        }
+        
+        let nomePreenchido = associadoEncontrado ? associadoEncontrado.nome_completo : '';
+        // --- FIM: Lógica do CPF ---
+
         // Auto-categorizar com base nas regras OFX
         let catSelecionada = "";
         for (let r of regras) {
@@ -167,6 +194,12 @@ async function renderizarTabelaOfx() {
                 catSelecionada = r.category;
                 break;
             }
+        }
+        
+        // Se não achou regra, mas tem CPF e é receita, sugere a categoria de mensalidade (AdminLuz)
+        if (!catSelecionada && t.valor >= 0 && associadoEncontrado) {
+            const catMensalidade = recArr.find(c => c.toLowerCase().includes('mensalidade'));
+            if (catMensalidade) catSelecionada = catMensalidade;
         }
         
         // Construir Options do Select filtrado por tipo
@@ -199,7 +232,7 @@ async function renderizarTabelaOfx() {
                     <input type="text" id="ofx_comp_${index}" value="${comp}" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-dark); color: white; width: 70px;" placeholder="MM/AAAA">
                 </div>
                 <div style="display: flex; gap: 8px;">
-                    <input type="text" id="ofx_nome_${index}" placeholder="Nome Livre / Beneficiário" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-dark); color: white; flex: 1;">
+                    <input type="text" id="ofx_nome_${index}" value="${nomePreenchido}" placeholder="Nome Livre / Beneficiário" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-dark); color: white; flex: 1;">
                 </div>
             </td>
             <td style="padding: 16px; font-size: 14px; text-align: center;">
