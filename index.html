@@ -436,6 +436,25 @@
                     
                 </div>
             </div>
+            <!-- MODAL ESCOLHA PIX -->
+            <div id="modalPixOptions" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; align-items: center; justify-content: center;">
+                <div style="background: var(--bg-panel); padding: 24px; border-radius: 12px; width: 320px; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+                    <h3 style="margin-top: 0; margin-bottom: 16px;">Enviar Cobrança (Pix)</h3>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Como deseja enviar o WhatsApp para <span id="pixModalNome"></span>?</p>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <button class="btn btn-secondary" id="btnPixTexto" style="background: var(--bg-dark); color: white; border: 1px solid var(--border);">
+                            💬 Enviar Mensagem de Texto
+                        </button>
+                        <button class="btn btn-primary" id="btnPixCodigo" style="background: #10b981; border: none;">
+                            🔑 Enviar Apenas Código PIX
+                        </button>
+                        <button class="btn btn-secondary" onclick="document.getElementById('modalPixOptions').style.display='none'" style="margin-top: 8px; border: none; background: transparent;">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
             
             <!-- VIEW: Relatórios Contábeis -->
             <div id="viewRelatorios" class="content-body" style="display: none; padding: 32px;">

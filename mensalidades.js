@@ -580,9 +580,27 @@ document.querySelectorAll('.btn-pix').forEach(btn => {
         const codigo = payloadsPix[valor];
         const nomeCurto = associadoAtivo.nome_completo.split(' ')[0];
         
-        const msg = `Olá, ${nomeCurto}!\nSegue a chave Pix "Copia e Cola" no valor de R$ ${valor},00 para a sua mensalidade:\n\n${codigo}\n\n*A Sociedade Espírita Luz do Amanhã agradece!*`;
+        const msgTexto = `Olá, ${nomeCurto}!\nEste é um lembrete amigável sobre a sua mensalidade de R$ ${valor},00.\nVou enviar a chave Pix "Copia e Cola" na próxima mensagem para facilitar a cópia!\n\n*A Sociedade Espírita Luz do Amanhã agradece!*`;
+        const msgCodigo = codigo;
         
-        const link = `https://wa.me/${celLimpo}?text=${encodeURIComponent(msg)}`;
-        window.open(link, '_blank');
+        // Exibir modal de escolha
+        document.getElementById('pixModalNome').innerText = nomeCurto;
+        document.getElementById('modalPixOptions').style.display = 'flex';
+        
+        // Remove listeners antigos para evitar chamadas múltiplas
+        const btnTexto = document.getElementById('btnPixTexto');
+        const btnCodigo = document.getElementById('btnPixCodigo');
+        
+        btnTexto.onclick = () => {
+            const link = `https://wa.me/${celLimpo}?text=${encodeURIComponent(msgTexto)}`;
+            window.open(link, '_blank');
+            document.getElementById('modalPixOptions').style.display = 'none';
+        };
+        
+        btnCodigo.onclick = () => {
+            const link = `https://wa.me/${celLimpo}?text=${encodeURIComponent(msgCodigo)}`;
+            window.open(link, '_blank');
+            document.getElementById('modalPixOptions').style.display = 'none';
+        };
     });
 });
