@@ -30,7 +30,7 @@ async function carregarListaAssociados() {
         // Busca as Pessoas lá da tabela central do Portal (assumindo que a tabela se chama 'pessoas')
         // Vamos buscar todos e depois filtrar localmente, ou buscar apenas quem tem status/cargo específico
         const { data: pessoas, error } = await db.from('pessoas')
-            .select('id, cpf_cnpj, nome_completo, email, papeis, telefone')
+            .select('id, cpf_cnpj, nome_completo, email, papeis, celular')
             .contains('papeis', ['Associado Efetivo'])
             .order('nome_completo', { ascending: true });
             
@@ -364,9 +364,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            let celular = associadoAtivo.telefone || associadoAtivo.celular;
+            let celular = associadoAtivo.celular;
             if (!celular) {
-                const num = prompt(`O cadastro de ${associadoAtivo.nome_completo} não possui telefone/celular. Digite o número com DDD para continuar:`);
+                const num = prompt(`O cadastro de ${associadoAtivo.nome_completo} não possui celular. Digite o número com DDD para continuar:`);
                 if (!num) return;
                 celular = num;
             }
@@ -407,9 +407,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            let celular = associadoAtivo.telefone || associadoAtivo.celular;
+            let celular = associadoAtivo.celular;
             if (!celular) {
-                celular = prompt(`O cadastro de ${associadoAtivo.nome_completo} não possui telefone. Digite o número com DDD para continuar:`);
+                celular = prompt(`O cadastro de ${associadoAtivo.nome_completo} não possui celular. Digite o número com DDD para continuar:`);
                 if (!celular) return;
             }
             

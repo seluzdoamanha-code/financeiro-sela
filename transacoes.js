@@ -162,11 +162,51 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function carregarDashboard() {
-    // Por enquanto carrega vazio até conectarmos com a base de dados
-    document.getElementById('dashSaldoAnterior').innerText = 'R$ 0,00';
-    document.getElementById('dashEntradas').innerText = '+ R$ 0,00';
-    document.getElementById('dashSaidas').innerText = '- R$ 0,00';
-    document.getElementById('dashSaldoAtual').innerText = 'R$ 0,00';
+    const dataAtual = new Date();
+    // Ajusta o mês e ano corrente
+    const mm = (dataAtual.getMonth() + 1).toString().padStart(2, '0');
+    const aaaa = dataAtual.getFullYear().toString();
+    const competencia = `${mm}/${aaaa}`;
+    
+    // Formata algo como "Agosto 2026"
+    const nomeMes = dataAtual.toLocaleString('pt-BR', { month: 'long' });
+    const rotuloData = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1) + ' ' + aaaa;
+    document.getElementById('currentMonthLabel').innerText = rotuloData;
+
+    try {
+        let saldoAnt = 0;
+        const { data: cfg } = await db.from('configuracoes').select('valor').eq('chave', `saldo_ant_${competencia}`).single();
+        if (cfg && cfg.valor) saldoAnt = parseFloat(cfg.valor);
+
+        const { data: transacoes } = await db.from('fin_transacoes')
+            .select('valor, tipo')
+            .eq('competencia', competencia)
+            .eq('status', 'Pago');
+            
+        let entradas = 0;
+        let saidas = 0;
+        
+        if (transacoes) {
+            transacoes.forEach(t => {
+                const v = parseFloat(t.valor) || 0;
+                if ((t.tipo || 'Despesa') === 'Receita') {
+                    entradas += v;
+                } else {
+                    saidas += v;
+                }
+            });
+        }
+        
+        const saldoAtual = saldoAnt + entradas - saidas;
+        
+        document.getElementById('dashSaldoAnterior').innerText = `R$ ${saldoAnt.toFixed(2).replace('.', ',')}`;
+        document.getElementById('dashEntradas').innerText = `+ R$ ${entradas.toFixed(2).replace('.', ',')}`;
+        document.getElementById('dashSaidas').innerText = `- R$ ${saidas.toFixed(2).replace('.', ',')}`;
+        document.getElementById('dashSaldoAtual').innerText = `R$ ${saldoAtual.toFixed(2).replace('.', ',')}`;
+        
+    } catch(e) {
+        console.error("Erro no dashboard:", e);
+    }
 }
 
 async function carregarTransacoes() {
