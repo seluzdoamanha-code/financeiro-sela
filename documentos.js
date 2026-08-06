@@ -23,19 +23,18 @@ document.addEventListener('DOMContentLoaded', () => {
         btnFiltrarDocs.addEventListener('click', carregarDocumentos);
     }
 
-    const btnNovoDocumento = document.getElementById('btnNovoDocumento');
-    if (btnNovoDocumento) {
-        btnNovoDocumento.addEventListener('click', () => {
-            document.getElementById('formUploadDocumento').reset();
-            document.getElementById('modalDocumento').style.display = 'flex';
-        });
-    }
+    // Removido listener do btnNovoDocumento pois agora usa onclick no HTML
 
     const formUploadDocumento = document.getElementById('formUploadDocumento');
     if (formUploadDocumento) {
         formUploadDocumento.addEventListener('submit', salvarNovoDocumento);
     }
 });
+
+window.abrirModalDocumento = function() {
+    document.getElementById('formUploadDocumento').reset();
+    document.getElementById('modalDocumento').style.display = 'flex';
+};
 
 async function carregarDocumentos() {
     const tbody = document.getElementById('tabelaDocumentosBody');
