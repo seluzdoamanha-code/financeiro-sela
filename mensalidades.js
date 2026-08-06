@@ -391,7 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .replace(/{meses}/g, atrasos.join(', '));
                 
             // Limpa o celular
-            let celLimpo = celular.replace(/\\D/g, '');
+            let celLimpo = String(celular).replace(/\D/g, '');
             if (celLimpo.length <= 11) celLimpo = '55' + celLimpo;
             
             const url = `https://wa.me/${celLimpo}?text=${encodeURIComponent(msg)}`;
@@ -422,7 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             const msg = template.replace('{nome}', associadoAtivo.nome_completo.split(' ')[0]);
-            let celLimpo = celular.replace(/\\D/g, '');
+            let celLimpo = String(celular).replace(/\D/g, '');
             if (celLimpo.length <= 11) celLimpo = '55' + celLimpo;
             
             const link = `https://wa.me/${celLimpo}?text=${encodeURIComponent(msg)}`;
