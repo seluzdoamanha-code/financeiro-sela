@@ -38,6 +38,10 @@ function processarOFX(conteudo) {
     const tbody = document.getElementById('tabelaOfxBody');
     tbody.innerHTML = '<tr><td colspan="5" style="padding: 24px; text-align: center; color: var(--text-muted);">Processando arquivo...</td></tr>';
     
+    console.log("=== INICIO DO ARQUIVO OFX ===");
+    console.log(conteudo.substring(0, 1000));
+    console.log("=============================");
+    
     // Regex para extrair as STMTTRN (suporta OFX SGML sem tags de fechamento)
     const stmttrnRegex = /<STMTTRN>([\s\S]*?)(?=<STMTTRN>|<\/STMTTRN>|<\/BANKTRANLIST>)/gi;
     let match;
@@ -46,14 +50,11 @@ function processarOFX(conteudo) {
     while ((match = stmttrnRegex.exec(conteudo)) !== null) {
         const trnData = match[1];
         
-        // <DTPOSTED>20260715100000[-03:EST]
-        const dtpostedMatch = /<DTPOSTED>([0-9]{8})/.exec(trnData);
-        // <TRNAMT>-150.00
-        const trnamtMatch = /<TRNAMT>([-\d.]+)/.exec(trnData);
-        // <MEMO>PGTO FORNECEDOR
-        const memoMatch = /<MEMO>(.*?)[\r\n<]/.exec(trnData);
-        // <FITID>
-        const fitidMatch = /<FITID>(.*?)[\r\n<]/.exec(trnData);
+        // Regex mais permissivas para extrair os campos
+        const dtpostedMatch = /<DTPOSTED>\s*([0-9]{8})/i.exec(trnData);
+        const trnamtMatch = /<TRNAMT>\s*([-\d.,]+)/i.exec(trnData);
+        const memoMatch = /<MEMO>\s*(.*?)[\r\n<]/i.exec(trnData);
+        const fitidMatch = /<FITID>\s*(.*?)[\r\n<]/i.exec(trnData);
         
         if (dtpostedMatch && trnamtMatch) {
             const dateStr = dtpostedMatch[1]; // YYYYMMDD
