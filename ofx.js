@@ -95,14 +95,14 @@ async function renderizarTabelaOfx() {
     let regras = [];
     let recArr = [];
     let despArr = [];
-    let pessoasAtivas = [];
+    let todasPessoas = [];
     try {
         const [resCfg, resPessoas] = await Promise.all([
             db.from('configuracoes').select('*'),
-            db.from('pessoas').select('cpf_cnpj, nome_completo').contains('papeis', ['Associado Efetivo'])
+            db.from('pessoas').select('cpf_cnpj, nome_completo, nome_curto, papeis').order('nome_completo', { ascending: true })
         ]);
         
-        if (resPessoas.data) pessoasAtivas = resPessoas.data;
+        if (resPessoas.data) todasPessoas = resPessoas.data;
         
         const data = resCfg.data;
         if (data) {
@@ -181,7 +181,7 @@ async function renderizarTabelaOfx() {
             } else if (doc.length === 14) {
                 cpfExtraido = `${doc.substring(0,2)}.${doc.substring(2,5)}.${doc.substring(5,8)}/${doc.substring(8,12)}-${doc.substring(12)}`;
             }
-            associadoEncontrado = pessoasAtivas.find(p => p.cpf_cnpj === cpfExtraido);
+            associadoEncontrado = todasPessoas.find(p => p.cpf_cnpj === cpfExtraido);
         }
         
         let nomePreenchido = associadoEncontrado ? associadoEncontrado.nome_completo : '';
@@ -214,6 +214,27 @@ async function renderizarTabelaOfx() {
             const isSelected = (c === catSelecionada) ? 'selected' : '';
             optionsHtml += `<option value="${c}" ${isSelected}>${c}</option>`;
         });
+        let optAssociados = '';
+        let optOutros = '';
+        
+        todasPessoas.forEach(p => {
+            const isSelected = (associadoEncontrado && associadoEncontrado.cpf_cnpj === p.cpf_cnpj) ? 'selected' : '';
+            const nomePrincipal = p.nome_curto || p.nome_completo;
+            const docFormatado = typeof formatarDocumento === 'function' ? formatarDocumento(p.cpf_cnpj) : p.cpf_cnpj;
+            const docExtra = docFormatado ? ` (${docFormatado})` : '';
+            
+            const optHtml = `<option value="${p.cpf_cnpj}" ${isSelected}>${nomePrincipal}${docExtra}</option>`;
+            
+            if (p.papeis && JSON.stringify(p.papeis).includes('Associado Efetivo')) {
+                optAssociados += optHtml;
+            } else {
+                optOutros += optHtml;
+            }
+        });
+        
+        let pessoasOptionsHtml = '<option value="">-- Vincular Pessoa (Opcional) --</option>';
+        if (optAssociados) pessoasOptionsHtml += `<optgroup label="Associados Efetivos">${optAssociados}</optgroup>`;
+        if (optOutros) pessoasOptionsHtml += `<optgroup label="Outros">${optOutros}</optgroup>`;
         
         tr.innerHTML = `
             <td style="padding: 16px; font-size: 14px;">${dataStr}</td>
@@ -232,7 +253,10 @@ async function renderizarTabelaOfx() {
                     <input type="text" id="ofx_comp_${index}" value="${comp}" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-dark); color: white; width: 70px;" placeholder="MM/AAAA">
                 </div>
                 <div style="display: flex; gap: 8px;">
-                    <input type="text" id="ofx_nome_${index}" value="${nomePreenchido}" placeholder="Nome Livre / Beneficiário" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-dark); color: white; flex: 1;">
+                    <select id="ofx_cpf_${index}" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-dark); color: white; flex: 1;">
+                        ${pessoasOptionsHtml}
+                    </select>
+                    <input type="text" id="ofx_nome_${index}" value="${nomePreenchido}" placeholder="Nome Livre" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-dark); color: white; flex: 1;">
                 </div>
             </td>
             <td style="padding: 16px; font-size: 14px; text-align: center;">
@@ -247,7 +271,17 @@ window.conciliarOfx = async function(index) {
     const t = transacoesOfx[index];
     const categoria = document.getElementById(`ofx_cat_${index}`).value;
     const competencia = document.getElementById(`ofx_comp_${index}`).value;
-    const nomeLivre = document.getElementById(`ofx_nome_${index}`).value;
+    
+    const selectPessoa = document.getElementById(`ofx_cpf_${index}`);
+    const inNomeLivre = document.getElementById(`ofx_nome_${index}`).value;
+    
+    let cpfFim = null;
+    let nomeFim = inNomeLivre || null;
+    
+    if (selectPessoa && selectPessoa.value) {
+        cpfFim = selectPessoa.value;
+        nomeFim = selectPessoa.options[selectPessoa.selectedIndex].text;
+    }
     
     if (!competencia) {
         alert("Preencha a competência (MM/AAAA).");
@@ -257,12 +291,13 @@ window.conciliarOfx = async function(index) {
     const tipo = t.valor >= 0 ? 'Receita' : 'Despesa';
     
     const transacao = {
+        cpf: cpfFim,
         tipo: tipo,
         data_pagamento: t.data,
         valor: Math.abs(t.valor),
         competencia: competencia,
         descricao: t.descricao + ` (FITID: ${t.fitid})`,
-        nome_livre: nomeLivre || null,
+        nome_livre: nomeFim,
         categoria: categoria || null,
         status: 'Pago'
     };
