@@ -69,16 +69,38 @@ function processarOFX(conteudo) {
         }
     }
     
-    renderizarTabelaOfx();
+    
+    await renderizarTabelaOfx();
 }
 
-function renderizarTabelaOfx() {
+async function renderizarTabelaOfx() {
     const tbody = document.getElementById('tabelaOfxBody');
     
     if (transacoesOfx.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" style="padding: 24px; text-align: center; color: var(--text-muted);">Nenhuma transação encontrada no arquivo OFX.</td></tr>';
         return;
     }
+    
+    // Fetch unique config (rules + categories)
+    let cats = [];
+    let regras = [];
+    try {
+        const { data } = await db.from('configuracoes').select('*');
+        if (data) {
+            let rec = "";
+            let desp = "";
+            data.forEach(cfg => {
+                if (cfg.chave === 'fin_plano_receitas') rec = cfg.valor;
+                if (cfg.chave === 'fin_plano_despesas') desp = cfg.valor;
+                if (cfg.chave === 'fin_regras_ofx' && cfg.valor) {
+                    try { regras = JSON.parse(cfg.valor); } catch(e) {}
+                }
+            });
+            const recArr = (rec || "").split('\n').map(s => s.trim()).filter(s => s);
+            const despArr = (desp || "").split('\n').map(s => s.trim()).filter(s => s);
+            cats = [...recArr, ...despArr].sort();
+        }
+    } catch(e) { console.error("Erro ao carregar configs pro OFX:", e); }
     
     tbody.innerHTML = '';
     
@@ -99,6 +121,21 @@ function renderizarTabelaOfx() {
         
         // Competência default é o mês/ano da data
         const comp = `${partes[1]}/${partes[0]}`;
+        // Auto-categorizar com base nas regras OFX
+        let catSelecionada = "";
+        for (let r of regras) {
+            if (t.descricao.toLowerCase().includes(r.keyword.toLowerCase())) {
+                catSelecionada = r.category;
+                break;
+            }
+        }
+        
+        // Construir Options do Select
+        let optionsHtml = '<option value="">-- Selecione Categoria --</option>';
+        cats.forEach(c => {
+            const isSelected = (c === catSelecionada) ? 'selected' : '';
+            optionsHtml += `<option value="${c}" ${isSelected}>${c}</option>`;
+        });
         
         tr.innerHTML = `
             <td style="padding: 16px; font-size: 14px;">${dataStr}</td>
@@ -112,7 +149,7 @@ function renderizarTabelaOfx() {
             <td style="padding: 16px; font-size: 13px;">
                 <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                     <select id="ofx_cat_${index}" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-dark); color: white; flex: 1;">
-                        <option value="">-- Selecione Categoria --</option>
+                        ${optionsHtml}
                     </select>
                     <input type="text" id="ofx_comp_${index}" value="${comp}" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-dark); color: white; width: 70px;" placeholder="MM/AAAA">
                 </div>
@@ -125,26 +162,7 @@ function renderizarTabelaOfx() {
             </td>
         `;
         tbody.appendChild(tr);
-        
-        // Preencher categorias no select criado
-        const selCat = document.getElementById(`ofx_cat_${index}`);
-        carregarCategoriasSelect(selCat);
     });
-}
-
-async function carregarCategoriasSelect(selectElement) {
-    try {
-        const { data } = await db.from('configuracoes').select('valor').eq('chave', 'categorias_lancamentos').single();
-        if (data && data.valor) {
-            const cats = JSON.parse(data.valor);
-            cats.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c;
-                opt.innerText = c;
-                selectElement.appendChild(opt);
-            });
-        }
-    } catch (e) { }
 }
 
 window.conciliarOfx = async function(index) {

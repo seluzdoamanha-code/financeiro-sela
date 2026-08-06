@@ -498,7 +498,6 @@
                     </table>
                 </div>
             </div>
-            </div>
 
             <!-- VIEW: Conciliação OFX -->
             <div id="viewConciliacao" class="content-body" style="display: none; padding: 32px;">
@@ -616,6 +615,9 @@
                             <a href="#" class="config-tab" data-target="tabPlanoContas" style="padding: 12px; border-radius: 8px; color: var(--text-main); text-decoration: none; display: flex; align-items: center; gap: 8px; transition: 0.2s;">
                                 🗂️ Plano de Contas
                             </a>
+                            <a href="#" class="config-tab" data-target="tabOfxRegras" style="padding: 12px; border-radius: 8px; color: var(--text-main); text-decoration: none; display: flex; align-items: center; gap: 8px; transition: 0.2s;">
+                                🏦 Regras OFX
+                            </a>
                         </nav>
                         
                         <style>
@@ -688,6 +690,45 @@ Muito obrigado pelas suas contribuições ao longo deste ano! Segue o seu extrat
                                         <label style="display:block; margin-bottom: 8px; font-weight: 500; color: #ef4444;">Categorias de Despesa (-)</label>
                                         <textarea id="cfgPlanoContasDespesas" rows="12" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-dark); color: white; font-family: inherit; font-size: 14px; resize: vertical;" placeholder="Energia Elétrica&#10;Água&#10;Material de Escritório..."></textarea>
                                     </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Aba Regras OFX -->
+                            <div id="tabOfxRegras" class="config-content" style="display: none;">
+                                <h3 style="margin-top: 0; margin-bottom: 8px;">Regras de Categorização Automática (OFX)</h3>
+                                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Se a <b>Palavra-Chave</b> for encontrada na descrição do extrato, a <b>Categoria</b> será preenchida automaticamente.</p>
+                                
+                                <div style="display: flex; gap: 16px; margin-bottom: 24px; align-items: flex-end;">
+                                    <div style="flex: 2;">
+                                        <label style="display:block; margin-bottom: 8px; font-weight: 500;">Palavra-Chave (ex: TAR CONTA)</label>
+                                        <input type="text" id="cfgRegraOfxKeyword" class="input-field" placeholder="Digite a palavra-chave..." autocomplete="off">
+                                    </div>
+                                    <div style="flex: 2;">
+                                        <label style="display:block; margin-bottom: 8px; font-weight: 500;">Categoria Relacionada</label>
+                                        <select id="cfgRegraOfxCategory" class="input-field">
+                                            <option value="">-- Selecione a Categoria --</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-primary" onclick="adicionarRegraOfx()" style="background: var(--primary);">+ Adicionar Regra</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-container">
+                                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                                        <thead style="background: var(--bg-dark); border-bottom: 1px solid var(--border);">
+                                            <tr>
+                                                <th style="padding: 12px 16px; font-weight: 500; color: var(--text-muted); font-size: 13px;">Palavra-Chave</th>
+                                                <th style="padding: 12px 16px; font-weight: 500; color: var(--text-muted); font-size: 13px;">Categoria Destino</th>
+                                                <th style="padding: 12px 16px; font-weight: 500; color: var(--text-muted); font-size: 13px; text-align: center;">Ação</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tabelaRegrasOfxBody">
+                                            <tr>
+                                                <td colspan="3" style="text-align: center; padding: 24px; color: var(--text-muted);">Carregando regras...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
