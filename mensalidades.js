@@ -430,8 +430,120 @@ document.addEventListener('DOMContentLoaded', () => {
             let celLimpo = String(celular).replace(/\D/g, '');
             if (celLimpo.length <= 11) celLimpo = '55' + celLimpo;
             
-            const link = `https://wa.me/${celLimpo}?text=${encodeURIComponent(msg)}`;
-            window.open(link, '_blank');
+            // 1. Gera o PDF do Extrato Anual
+            const anoAtual = new Date().getFullYear();
+            const { data: transacoes } = await db.from('fin_transacoes')
+                .select('*')
+                .eq('pessoa_id', associadoAtivo.id)
+                .eq('status', 'Pago')
+                .like('data_pagamento', `${anoAtual}-%`)
+                .order('data_pagamento', { ascending: true });
+                
+            let trs = '';
+            let total = 0;
+            if (transacoes && transacoes.length > 0) {
+                transacoes.forEach(t => {
+                    const dataP = t.data_pagamento ? t.data_pagamento.split('-').reverse().join('/') : '-';
+                    const v = parseFloat(t.valor) || 0;
+                    total += v;
+                    trs += `
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${dataP}</td>
+                            <td style="padding: 8px; border: 1px solid #cbd5e1;">${t.descricao || 'Mensalidade'}</td>
+                            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right;">R$ ${v.toFixed(2).replace('.', ',')}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                trs = `<tr><td colspan="3" style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">Nenhuma contribuição encontrada neste ano.</td></tr>`;
+            }
+            
+            const htmlExtrato = `
+                <table style="width: 100%; border-collapse: collapse; margin-top: 30px;">
+                    <thead>
+                        <tr>
+                            <th style="padding: 12px; border: 1px solid #cbd5e1; background: #f1f5f9; text-align: center; width: 150px;">Data</th>
+                            <th style="padding: 12px; border: 1px solid #cbd5e1; background: #f1f5f9; text-align: left;">Descrição / Referência</th>
+                            <th style="padding: 12px; border: 1px solid #cbd5e1; background: #f1f5f9; text-align: right; width: 150px;">Valor (R$)</th>
+                        </tr>
+                    </thead>
+                    <tbody>${trs}</tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="2" style="padding: 12px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold; background: #f8fafc;">TOTAL:</td>
+                            <td style="padding: 12px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold; background: #f8fafc;">R$ ${total.toFixed(2).replace('.', ',')}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            `;
+
+            const urlLogo = window.location.origin + window.location.pathname.replace('index.html', '') + 'logo_sela.png';
+            
+            const printWin = window.open('', '_blank');
+            printWin.document.write(`
+                <html>
+                    <head>
+                        <title>Extrato Anual - ${associadoAtivo.nome_completo}</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; color: black; margin: 40px; }
+                            .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ccc; padding-bottom: 20px; margin-bottom: 30px; }
+                            .header-logo { display: flex; align-items: center; gap: 16px; }
+                            .header-logo img { height: 60px; }
+                            .header-logo div { font-weight: bold; font-size: 16px; line-height: 1.2; }
+                            .header-title { text-align: right; }
+                            .header-title h1 { margin: 0; font-size: 18px; text-transform: uppercase; }
+                            .header-title p { margin: 4px 0 0; color: #555; font-size: 14px; }
+                            .associado-info { font-size: 14px; line-height: 1.6; }
+                            .alert-info { margin-top: 30px; padding: 16px; background: #eff6ff; color: #1e3a8a; border-radius: 8px; font-weight: 500; font-family: sans-serif; }
+                            @media print { .alert-info { display: none !important; } }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="alert-info">
+                            1. Salve esta página como PDF. <br>
+                            2. Volte para a aba do sistema para enviar a mensagem do WhatsApp. <br>
+                            3. Anexe o PDF salvo na conversa do WhatsApp!
+                        </div>
+                        <div class="header">
+                            <div class="header-logo">
+                                <img src="${urlLogo}" alt="Logo SELA">
+                                <div>SOCIEDADE ESPÍRITA<br>LUZ DO AMANHECER</div>
+                            </div>
+                            <div class="header-title">
+                                <h1>EXTRATO DE CONTRIBUIÇÕES</h1>
+                                <p>ANO: ${anoAtual}</p>
+                            </div>
+                        </div>
+                        <div class="associado-info">
+                            <strong>Associado(a):</strong> ${associadoAtivo.nome_completo}<br>
+                            <strong>CPF/CNPJ:</strong> ${associadoAtivo.cpf_cnpj || 'Não informado'}
+                        </div>
+                        ${htmlExtrato}
+                        
+                        <div style="margin-top: 80px; display: flex; justify-content: space-around; text-align: center;">
+                            <div>
+                                <div style="border-bottom: 1px solid black; width: 250px; margin-bottom: 8px;"></div>
+                                <div style="font-size: 14px;">Tesouraria</div>
+                            </div>
+                            <div>
+                                <div style="border-bottom: 1px solid black; width: 250px; margin-bottom: 8px;"></div>
+                                <div style="font-size: 14px;">Diretoria Executiva</div>
+                            </div>
+                        </div>
+                    </body>
+                </html>
+            `);
+            printWin.document.close();
+            
+            // 2. Aguarda um pouco e aciona a impressão, depois abre o WhatsApp
+            setTimeout(() => {
+                printWin.print();
+                
+                setTimeout(() => {
+                    const link = \`https://wa.me/\${celLimpo}?text=\${encodeURIComponent(msg)}\`;
+                    window.open(link, '_blank');
+                }, 1000);
+            }, 500);
         });
     }
 });
