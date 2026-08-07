@@ -378,16 +378,21 @@ body {
         display: none !important;
     }
     
-    .main-nav {
+    .main-nav, .user-profile {
         flex-direction: column;
         padding: 0;
         width: 100%;
         display: none; /* Oculto por padrão no celular */
     }
     
-    .main-nav.show-mobile {
+    .sidebar.show-mobile .main-nav {
         display: flex;
         border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .sidebar.show-mobile .user-profile {
+        display: flex;
+        border-top: 1px solid var(--border);
     }
     
     .nav-item {

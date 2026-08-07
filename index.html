@@ -964,20 +964,20 @@ Muito obrigado pelas suas contribuições ao longo deste ano! Segue o seu extrat
         // Lógica de Toggle do Menu Mobile e Sidebar Retrátil
         document.addEventListener('DOMContentLoaded', () => {
             const btnMobileMenu = document.querySelector('.mobile-menu-btn');
-            const mainNav = document.querySelector('.main-nav');
             const sidebar = document.querySelector('.sidebar');
+            const mainNav = document.querySelector('.main-nav');
             const btnCollapse = document.getElementById('btnCollapseSidebar');
             
-            if (btnMobileMenu && mainNav) {
+            if (btnMobileMenu && sidebar) {
                 btnMobileMenu.addEventListener('click', () => {
-                    mainNav.classList.toggle('show-mobile');
+                    sidebar.classList.toggle('show-mobile');
                 });
                 
                 // Fecha o menu ao clicar num item no celular
                 mainNav.querySelectorAll('.nav-item').forEach(item => {
                     item.addEventListener('click', () => {
                         if (window.innerWidth <= 768) {
-                            mainNav.classList.remove('show-mobile');
+                            sidebar.classList.remove('show-mobile');
                         }
                     });
                 });
