@@ -231,35 +231,47 @@
     <div class="app-container" style="display: none;" id="mainApp">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="logo-area" style="text-align: center; padding: 32px 24px;">
-                <img src="logo_sela.png" alt="SELA" style="height: 50px; margin-bottom: 16px;">
-                <h2 style="font-size: 18px; color: #10b981; background: none; -webkit-text-fill-color: #10b981;">Financeiro SELA</h2>
+            <div class="logo-area" style="text-align: center; padding: 24px 16px; position: relative;">
+                <button class="mobile-menu-btn" style="position: absolute; left: 16px; top: 24px; background: none; border: none; font-size: 24px; color: var(--text-main); cursor: pointer; display: none;">☰</button>
+                <img src="logo_sela.png" alt="SELA" class="logo-img" style="height: 40px; margin-bottom: 8px; transition: all 0.2s;">
+                <h2 class="logo-text" style="font-size: 16px; color: #10b981; background: none; -webkit-text-fill-color: #10b981; margin: 0; white-space: nowrap;">Financeiro SELA</h2>
             </div>
             
             <nav class="main-nav" style="margin-top: 16px;">
-                <a href="#" class="nav-item active" id="menuDashboard">📊 Painel Geral</a>
-                <a href="#" class="nav-item" id="menuLivroCaixa">📓 Livro Caixa</a>
-                <a href="#" class="nav-item" id="menuMensalidades">
-                    <span style="font-size: 20px;">👥</span>
-                    Mensalidades
+                <a href="#" class="nav-item active" id="menuDashboard" title="Painel Geral">
+                    <span class="nav-icon">📊</span> <span class="nav-text">Painel Geral</span>
                 </a>
-                <a href="#" class="nav-item" id="menuRelatorios">📈 Relatórios Contábeis</a>
-                <a href="#" class="nav-item" id="menuDocumentos">📁 Documentos</a>
-                <a href="#" class="nav-item" id="menuConciliacao">🏦 Conciliar OFX</a>
-                <a href="#" class="nav-item" id="menuConfiguracoes">
-                    <span style="font-size: 20px;">⚙️</span>
-                    Configurações
+                <a href="#" class="nav-item" id="menuLivroCaixa" title="Livro Caixa">
+                    <span class="nav-icon">📓</span> <span class="nav-text">Livro Caixa</span>
+                </a>
+                <a href="#" class="nav-item" id="menuMensalidades" title="Mensalidades">
+                    <span class="nav-icon">👥</span> <span class="nav-text">Mensalidades</span>
+                </a>
+                <a href="#" class="nav-item" id="menuRelatorios" title="Relatórios Contábeis">
+                    <span class="nav-icon">📈</span> <span class="nav-text">Relatórios Contábeis</span>
+                </a>
+                <a href="#" class="nav-item" id="menuDocumentos" title="Documentos">
+                    <span class="nav-icon">📁</span> <span class="nav-text">Documentos</span>
+                </a>
+                <a href="#" class="nav-item" id="menuConciliacao" title="Conciliar OFX">
+                    <span class="nav-icon">🏦</span> <span class="nav-text">Conciliar OFX</span>
+                </a>
+                <a href="#" class="nav-item" id="menuConfiguracoes" title="Configurações">
+                    <span class="nav-icon">⚙️</span> <span class="nav-text">Configurações</span>
                 </a>
             </nav>
             
             <div class="user-profile">
                 <div class="user-avatar" id="userAvatar">T</div>
-                <div class="user-info">
+                <div class="user-info nav-text">
                     <span class="user-name">Tesouraria</span>
                     <span class="user-role" id="userEmailDisplay">carregando...</span>
                 </div>
                 <button id="btnSair" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 8px;" title="Sair">🚪</button>
             </div>
+            <button id="btnCollapseSidebar" class="desktop-only" style="background: var(--bg-panel); border: none; border-top: 1px solid var(--border); color: var(--text-muted); cursor: pointer; padding: 12px; text-align: center; transition: all 0.2s; width: 100%;">
+                <span class="collapse-icon">«</span> <span class="nav-text" style="font-size: 13px; font-weight: 500;">Encolher Menu</span>
+            </button>
         </aside>
 
         <!-- Main Content -->
@@ -946,6 +958,42 @@ Muito obrigado pelas suas contribuições ao longo deste ano! Segue o seu extrat
                 acaoConfirmacaoPendente();
             }
             fecharModalConfirmacao();
+        });
+    </script>
+    <script>
+        // Lógica de Toggle do Menu Mobile e Sidebar Retrátil
+        document.addEventListener('DOMContentLoaded', () => {
+            const btnMobileMenu = document.querySelector('.mobile-menu-btn');
+            const mainNav = document.querySelector('.main-nav');
+            const sidebar = document.querySelector('.sidebar');
+            const btnCollapse = document.getElementById('btnCollapseSidebar');
+            
+            if (btnMobileMenu && mainNav) {
+                btnMobileMenu.addEventListener('click', () => {
+                    mainNav.classList.toggle('show-mobile');
+                });
+                
+                // Fecha o menu ao clicar num item no celular
+                mainNav.querySelectorAll('.nav-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        if (window.innerWidth <= 768) {
+                            mainNav.classList.remove('show-mobile');
+                        }
+                    });
+                });
+            }
+            
+            if (btnCollapse && sidebar) {
+                btnCollapse.addEventListener('click', () => {
+                    sidebar.classList.toggle('collapsed');
+                    const icon = btnCollapse.querySelector('.collapse-icon');
+                    if (sidebar.classList.contains('collapsed')) {
+                        icon.innerText = '»';
+                    } else {
+                        icon.innerText = '«';
+                    }
+                });
+            }
         });
     </script>
 </body>
