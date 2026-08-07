@@ -457,6 +457,32 @@ body {
         -webkit-overflow-scrolling: touch;
     }
     
+    /* Sobrescrita Forçada de Layouts Inline Side-by-Side */
+    .content-body div[style*="display: flex; gap: 24px; height: 100%;"] {
+        flex-direction: column !important;
+        height: auto !important;
+    }
+    
+    .content-body div[style*="width: 320px"], 
+    .content-body div[style*="width: 250px"] {
+        width: 100% !important;
+        flex: none !important;
+    }
+    
+    .content-body div[style*="justify-content: space-between"] {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 16px !important;
+    }
+    
+    .content-body div[style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .content-body div[style*="minmax(200px"] {
+        grid-template-columns: 1fr !important;
+    }
+    
     /* Ajustes no Modal para ficar Fullscreen no Celular */
     .modal-content {
         width: 100%;
