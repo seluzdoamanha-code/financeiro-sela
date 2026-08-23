@@ -427,7 +427,7 @@ function popularSelectPessoas(selectEl, listaPessoas) {
         const docExtra = docFormatado ? ` (${docFormatado})` : '';
         opt.innerText = `${nomePrincipal}${docExtra}`;
         
-        if (p.papeis && JSON.stringify(p.papeis).includes('Associado Efetivo')) {
+        if (p.perfis && JSON.stringify(p.perfis).includes('Associado Efetivo')) {
             optAssociados.appendChild(opt);
         } else {
             const digitos = p.cpf_cnpj ? p.cpf_cnpj.replace(/\D/g, '').length : 0;

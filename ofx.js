@@ -99,7 +99,7 @@ async function renderizarTabelaOfx() {
     try {
         const [resCfg, resPessoas] = await Promise.all([
             db.from('configuracoes').select('*'),
-            db.from('pessoas').select('cpf_cnpj, nome_completo, nome_curto, papeis').order('nome_completo', { ascending: true })
+            db.from('pessoas').select('cpf_cnpj, nome_completo, nome_curto, perfis').order('nome_completo', { ascending: true })
         ]);
         
         if (resPessoas.data) todasPessoas = resPessoas.data;
@@ -226,7 +226,7 @@ async function renderizarTabelaOfx() {
             
             const optHtml = `<option value="${p.cpf_cnpj}" ${isSelected}>${nomePrincipal}${docExtra}</option>`;
             
-            if (p.papeis && JSON.stringify(p.papeis).includes('Associado Efetivo')) {
+            if (p.perfis && JSON.stringify(p.perfis).includes('Associado Efetivo')) {
                 optAssociados += optHtml;
             } else {
                 const digitos = p.cpf_cnpj ? p.cpf_cnpj.replace(/\D/g, '').length : 0;
